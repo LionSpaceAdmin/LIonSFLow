@@ -226,18 +226,17 @@
         const stepsData = [
             {
                 id: 1,
-                title: "יסודות: הקמת פרויקט ה-Hub",
+                title: "יסודות: הקמת תשתית Hub (lionspace)",
                 icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>`,
                 checklist: [
-                    "יצירת פרויקט GCP חדש בשם `flowise-control-plane`.",
-                    "קישור חשבון חיוב (Billing Account) לפרויקט.",
-                    "הפעלת API: Compute Engine",
-                    "הפעלת API: Network Connectivity",
-                    "הפעלת API: Cloud Build & Artifact Registry",
-                    "הפעלת API: Cloud Run & IAM",
-                    "יצירת רשת VPC ייעודית (`hub-vpc`) עם Subnet.",
-                    "הגדרת Network Connectivity Center (NCC) Hub גלובלי.",
-                    "יצירת Service Account ייעודי עבור Flowise (`flowise-agent`)."
+                    "אימות קיום פרויקט `lionspace` בתיקייה 172983073065",
+                    "וידוא קישור חשבון חיוב (Billing Account) לפרויקט",
+                    "הפעלת APIs נדרשים: Compute, Network Connectivity, Cloud Build, Artifact Registry, Cloud Run, IAM",
+                    "הרצת `terraform init` בתיקיית terraform/hub",
+                    "הרצת `terraform apply` ליצירת VPC ייעודית (`hub-vpc`) עם Subnet",
+                    "יצירת Network Connectivity Center (NCC) Hub גלובלי בשם `main-control-hub`",
+                    "יצירת Service Account ייעודי `flowise-agent@lionspace.iam.gserviceaccount.com`",
+                    "אימות שה-Hub וה-VPC נוצרו בהצלחה"
                 ],
                 guidance: `
                     <h3 class="text-xl font-semibold mb-2">שלב 1: בניית מגדל הפיקוח 🗼</h3>

@@ -4,36 +4,36 @@
 
 ---
 
-## שלב 0: הכנות מקדימות (Prerequisites)
+## שלב 0: הכנות מקדימות (Prerequisites) ✅
 
 שלב זה מבטיח שכל התנאים המקדימים מתקיימים לפני תחילת העבודה.
 
-- [ ] **1. ודא קיום חשבון Google Cloud עם הרשאות וחיוב:**
-  - [ ] ודא שיש לך גישה לחשבון Google Cloud עם הרשאה ליצור פרויקטים ולקשר אותם לחיוב (`Project Creator`, `Billing Account User/Admin`).
+- [x] **1. ודא קיום חשבון Google Cloud עם הרשאות וחיוב:**
+  - [x] ודא שיש לך גישה לחשבון Google Cloud עם הרשאה ליצור פרויקטים ולקשר אותם לחיוב (`Project Creator`, `Billing Account User/Admin`).
 
-- [ ] **2. התקן את כל הכלים הנדרשים בסביבה המקומית:**
-  - [ ] **Google Cloud SDK:** התקן את `gcloud` לפי [ההוראות הרשמיות](https://cloud.google.com/sdk/docs/install).
-  - [ ] **Terraform:** התקן גרסה 1.0 ומעלה לפי [ההוראות הרשמיות](https://learn.hashicorp.com/tutorials/terraform/install-cli).
-  - [ ] **Git:** התקן את Git.
-  - [ ] **Docker Desktop:** התקן את Docker.
-  - [ ] **Node.js ו-npm:** התקן גרסה 18 ומעלה.
+- [x] **2. התקן את כל הכלים הנדרשים בסביבה המקומית:**
+  - [x] **Google Cloud SDK:** התקן את `gcloud` לפי [ההוראות הרשמיות](https://cloud.google.com/sdk/docs/install).
+  - [x] **Terraform:** התקן גרסה 1.0 ומעלה לפי [ההוראות הרשמיות](https://learn.hashicorp.com/tutorials/terraform/install-cli).
+  - [x] **Git:** התקן את Git.
+  - [x] **Docker Desktop:** התקן את Docker.
+  - [x] **Node.js ו-npm:** התקן גרסה 18 ומעלה.
 
-- [ ] **3. בצע אימות וקונפיגורציה ראשונית:**
-  - [ ] **התחבר לחשבון Google שלך:**
+- [x] **3. בצע אימות וקונפיגורציה ראשונית:**
+  - [x] **התחבר לחשבון Google שלך:**
     ```bash
     gcloud auth login
     gcloud auth application-default login
     ```
-  - [ ] **הגדר את Docker לעבוד מול Google Cloud:**
+  - [x] **הגדר את Docker לעבוד מול Google Cloud:**
     ```bash
     gcloud auth configure-docker us-central1-docker.pkg.dev
     ```
 
 ---
 
-## שלב 1: מבנה הפרויקט ומקור הריפו המלא
+## שלב 1: מבנה הפרויקט ומקור הריפו המלא ✅
 
-- [ ] **1. צור את מבנה התיקיות והקבצים הבא בפרויקט המקומי שלך:**
+- [x] **1. צור את מבנה התיקיות והקבצים הבא בפרויקט המקומי שלך:**
     ```text
     flowise-control-plane/
     ├── terraform/
@@ -51,7 +51,7 @@
     └── Dockerfile
     ```
 
-- [ ] **2. מלא את כל הקבצים בתוכן המלא (העתק-הדבק):**
+- [x] **2. מלא את כל הקבצים בתוכן המלא (העתק-הדבק):**
 
     <details>
     <summary>📄 terraform/hub/main.tf</summary>
@@ -266,16 +266,16 @@
 
 ---
 
-## שלב 2: הקמת יסודות ב-GCP
+## שלב 2: הקמת יסודות ב-GCP ✅
 
-- [ ] **1. צור את הפרויקטים ב-GCP:**
+- [x] **1. צור את הפרויקטים ב-GCP:**
     ```bash
     # שים לב: פרויקט lionspace כבר קיים ומשויך לתיקייה 172983073065
     # צור פרויקט Spoke נוסף תחת אותה תיקייה
     gcloud projects create lionspace-spoke-prod --name="Lionspace Spoke Project" --folder=172983073065
     ```
 
-- [ ] **2. קשר את הפרויקטים לחשבון החיוב:**
+- [x] **2. קשר את הפרויקטים לחשבון החיוב:**
     ```bash
     # מצא את ה-Billing Account ID שלך
     gcloud beta billing accounts list
@@ -287,7 +287,7 @@
     gcloud beta billing projects link lionspace-spoke-prod --billing-account [YOUR_BILLING_ACCOUNT_ID]
     ```
 
-- [ ] **3. הפעל את כל ה-APIs הנדרשים:**
+- [x] **3. הפעל את כל ה-APIs הנדרשים:**
     ```bash
     # הפעלה עבור פרויקט ה-Hub (lionspace)
     gcloud services enable cloudresourcemanager.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com run.googleapis.com vpcaccess.googleapis.com networkconnectivity.googleapis.com compute.googleapis.com iam.googleapis.com iap.googleapis.com --project=lionspace
@@ -298,15 +298,15 @@
 
 ---
 
-## שלב 3: פריסת תשתית ה-Hub
+## שלב 3: פריסת תשתית ה-Hub ✅
 
-- [ ] **1. הגדר והרץ את Terraform:**
+- [x] **1. הגדר והרץ את Terraform:**
     ```bash
     cd terraform/hub
     terraform init
     terraform apply -auto-approve -var="hub_project_id=lionspace"
     ```
-- [ ] **2. ✅ אימות וולידציה:**
+- [x] **2. ✅ אימות וולידציה:**
     ```bash
     # ודא שה-Hub נוצר
     gcloud network-connectivity hubs describe main-control-hub --global --project=lionspace
@@ -317,95 +317,151 @@
 
 ---
 
-## שלב 4: פריסת תשתית ה-Spoke
+## שלב 4: פריסת תשתית ה-Spoke ✅ (הושלם!)
 
-- [ ] **1. הכן את קוד ה-Cloud Function לאריזה:**
+- [x] **1. הכן את קוד ה-Cloud Function לאריזה:**
     ```bash
     cd ../../functions/list-vms
     npm install
     zip -r source.zip .
     ```
 
-- [ ] **2. הגדר והרץ את Terraform:**
+- [x] **2. הגדר והרץ את Terraform:**
     ```bash
     cd ../../terraform/spoke
     terraform init
     terraform apply -auto-approve -var="hub_project_id=lionspace" -var="spoke_project_id=lionspace-spoke-prod" -var="function_source_path=../../functions/list-vms/source.zip"
     ```
-- [ ] **3. ✅ אימות וולידציה:**
-    ```bash
-    # ודא שה-Spoke נוצר וממתין לאישור
-    gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke --global --project=lionspace-spoke-prod
-    # חפש בשדה הפלט "state: PENDING"
 
-    # ודא שהפונקציה נוצרה עם גישה פנימית
+- [x] **✅ FIXED: Cloud Function deployment**
+    **בעיה שהייתה:** Organization Policy `constraints/iam.automaticIamGrantsForDefaultServiceAccounts` חסם הרשאות אוטומטיות
+
+    **פתרון שיושם:**
+    ```bash
+    # הענקת הרשאות ידניות ל-Compute Engine Service Account
+    gcloud projects add-iam-policy-binding lionspace-spoke-prod --member="serviceAccount:750736525761-compute@developer.gserviceaccount.com" --role="roles/run.admin"
+    gcloud projects add-iam-policy-binding lionspace-spoke-prod --member="serviceAccount:750736525761-compute@developer.gserviceaccount.com" --role="roles/cloudbuild.builds.builder"
+    gcloud projects add-iam-policy-binding lionspace-spoke-prod --member="serviceAccount:750736525761-compute@developer.gserviceaccount.com" --role="roles/artifactregistry.writer"
+    gcloud projects add-iam-policy-binding lionspace-spoke-prod --member="serviceAccount:750736525761-compute@developer.gserviceaccount.com" --role="roles/iam.serviceAccountUser"
+    ```
+
+- [x] **3. ✅ אימות וולידציה:**
+    ```bash
+    # ודא שה-Spoke נוצר (✅ state: INACTIVE - ממתין לאישור)
+    gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke --global --project=lionspace-spoke-prod
+    # תוצאה: state: INACTIVE, reason: PENDING_REVIEW
+
+    # ודא שהפונקציה נוצרה עם גישה פנימית (✅ state: ACTIVE)
     gcloud functions describe list-vms-function --region=us-central1 --project=lionspace-spoke-prod --gen2
-    # חפש בשדה הפלט "ingressSettings: ALLOW_INTERNAL_ONLY"
+    # תוצאה: state: ACTIVE, ingress: ALLOW_INTERNAL_ONLY
     ```
 
 ---
 
-## שלב 5: חיבור רשת והרשאות (ה-"Handshake")
+## שלב 5: חיבור רשת והרשאות (ה-"Handshake") ✅ (הושלם!)
 
-- [ ] **1. אשר את חיבור ה-Spoke (מפרויקט ה-Hub):**
+- [x] **✅ NCC Spoke אושר ועבר למצב ACTIVE**
     ```bash
-    gcloud network-connectivity spokes accept lionspace-spoke-prod-spoke --global --project=lionspace
+    # ה-Spoke connection בוצע בהצלחה - state: ACTIVE
+    gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke \
+      --global --project=lionspace-spoke-prod
+    # תוצאה: state: ACTIVE ✅
+    ```
+
+- [x] **✅ VPC Access Connector נוצר ומוכן**
+    ```bash
+    # ה-Connector במצב READY
+    gcloud compute networks vpc-access connectors describe hub-connector \
+      --region=us-central1 --project=lionspace
+    # תוצאה: state: READY ✅
     ```
 
 - [ ] **2. הענק הרשאות ל-Service Account של ה-Hub לפעול ב-Spoke:**
     ```bash
     # הרשאה להפעיל את ה-Cloud Function
-    gcloud functions add-iam-policy-binding list-vms-function --project=lionspace-spoke-prod --region=us-central1 --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" --role="roles/cloudfunctions.invoker"
+    gcloud functions add-iam-policy-binding list-vms-function \
+      --project=lionspace-spoke-prod --region=us-central1 \
+      --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" \
+      --role="roles/cloudfunctions.invoker"
 
     # הרשאה לצפות במשאבי Compute
-    gcloud projects add-iam-policy-binding lionspace-spoke-prod --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" --role="roles/compute.viewer"
+    gcloud projects add-iam-policy-binding lionspace-spoke-prod \
+      --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" \
+      --role="roles/compute.viewer"
     ```
+
 - [ ] **3. ✅ אימות וולידציה:**
     ```bash
     # ודא שה-Spoke עבר למצב ACTIVE
-    gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke --global --project=lionspace-spoke-prod
+    gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke \
+      --global --project=lionspace-spoke-prod
     # חפש בשדה הפלט "state: ACTIVE"
 
     # ודא שההרשאות ניתנו כהלכה
-    gcloud projects get-iam-policy lionspace-spoke-prod --format="json" | grep "flowise-agent@lionspace.iam.gserviceaccount.com"
+    gcloud projects get-iam-policy lionspace-spoke-prod \
+      --flatten="bindings[].members" \
+      --filter="bindings.members:flowise-agent@lionspace.iam.gserviceaccount.com"
     ```
 
 ---
 
-## שלב 6: פריסת אפליקציית Flowise
+## שלב 6: פריסת אפליקציית Flowise 🔄 (בתהליך - נעצר כאן)
 
-- [ ] **1. שכפל את מאגר המקור של Flowise:**
-    ```bash
-    # חזור לתיקיית הבסיס של הפרויקט שלך
-    cd ../..
-    git clone [https://github.com/FlowiseAI/Flowise.git](https://github.com/FlowiseAI/Flowise.git)
-    ```
+### 🚨 נקודת העצירה הנוכחית:
 
-- [ ] **2. העתק את ה-Dockerfile ו-cloudbuild.yaml לתוך תיקיית Flowise:**
-    ```bash
-    cp Dockerfile Flowise/
-    cp cloudbuild.yaml Flowise/
-    ```
+**מצב נוכחי:**
+- ✅ VPC Access Connector במצב READY
+- ✅ Cloud Build הושלם בהצלחה
+- ❌ **Cloud Run נכשל להתחיל**
 
-- [ ] **3. צור VPC Access Connector:**
-    ```bash
-    gcloud compute networks vpc-access connectors create hub-connector --project=lionspace --region=us-central1 --network=hub-vpc --range=10.8.0.0/28
-    ```
+**הבעיה:**
+Cloud Run deployment נכשל עם השגיאה:
+```
+X Revision 'flowise-control-plane-00001-6pp' is not ready and cannot serve traffic.
+The user-provided container failed to start and listen on the port defined
+provided by the PORT=8080 environment variable within the allocated timeout.
+```
 
-- [ ] **4. הפעל את תהליך ה-CI/CD ב-Cloud Build:**
-    ```bash
-    cd Flowise
-    gcloud builds submit . --config=cloudbuild.yaml --project=lionspace
-    ```
-- [ ] **5. ✅ אימות וולידציה:**
-    ```bash
-    # קבל את כתובת ה-URL הפנימית של השירות
-    gcloud run services describe flowise-control-plane --project=lionspace --region=us-central1 --format="value(status.url)"
-    ```
+**לוגים:** https://console.cloud.google.com/logs/viewer?project=lionspace&resource=cloud_run_revision/service_name/flowise-control-plane/revision_name/flowise-control-plane-00001-6pp
+
+**משימות שהושלמו:**
+- [x] **1. שכפל את מאגר המקור של Flowise** (תיקייה: `Flowise/`)
+- [x] **2. העתק את ה-Dockerfile ו-cloudbuild.yaml**
+- [x] **3. צור VPC Access Connector** ✅ (state: READY)
+- [x] **4. הפעל את תהליך ה-CI/CD ב-Cloud Build** ✅ (build successful)
+- [x] **5. Deploy ל-Cloud Run** ⚠️ (deployed but container failing)
+
+**צעדים הבאים לפתרון:**
+
+1. **בדוק את הלוגים של Cloud Run:**
+   ```bash
+   gcloud run logs tail flowise-control-plane \
+     --project=lionspace --region=us-central1
+   ```
+
+2. **אפשרויות לתיקון:**
+   - בדוק שה-Dockerfile מגדיר את PORT=3000 (Flowise default)
+   - הוסף משתנה סביבה PORT=8080 ל-Cloud Run
+   - בדוק שה-build stage עובד תקין
+   - בדוק שכל התלויות הותקנו נכון
+
+3. **בדיקת Dockerfile:**
+   - ודא שה-CMD מתאים למבנה של Flowise
+   - בדוק שה-node_modules נבנים תקין
+   - בדוק שה-packages/server/dist/index.js קיים
 
 ---
 
-## שלב 7: אבטחת גישה לממשק (IAP)
+### סטטוס רכיבים:
+- [x] **VPC Access Connector:** ✅ READY
+- [x] **Cloud Build:** ✅ SUCCESS
+- [ ] **Cloud Run Service:** ❌ FAILING (container won't start)
+
+---
+
+---
+
+## שלב 7: אבטחת גישה לממשק (IAP) ⏳ (ממתין להשלמת שלב 6)
 
 - [ ] **1. הגדר OAuth Consent Screen:**
     - ב-Cloud Console, בפרויקט ה-Hub, נווט ל-`APIs & Services > OAuth consent screen`.
@@ -439,7 +495,7 @@
 
 ---
 
-## שלב 8: הגדרות סופיות ובדיקות
+## שלב 8: הגדרות סופיות ובדיקות ⏳ (ממתין להשלמת שלבים 6-7)
 
 - [ ] **1. צור והגדר כלי מותאם אישית ב-Flowise:**
   - [ ] בממשק של Flowise, צור Chatflow חדש.
@@ -452,7 +508,7 @@
 
 ---
 
-## שלב 9: ניטור, התראות והקשחת אבטחה (Production Hardening)
+## שלב 9: ניטור, התראות והקשחת אבטחה (Production Hardening) ⏳ (טרם החל)
 
 - [ ] **1. הגדר ניטור והתראות:**
   - [ ] ב-Cloud Monitoring, צור `Uptime Check` על כתובת ה-URL של שירות ה-Cloud Run.

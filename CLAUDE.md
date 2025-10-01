@@ -1,222 +1,196 @@
-# LionsFlow Control Plane - Claude Code Context
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-**LionsFlow Control Plane** is a centralized, secure, production-ready management system for multi-project GCP environments. It uses a conversational AI interface (Flowise) to enable administrators and DevOps teams to query and manage multiple Google Cloud projects from a single control point.
 
-## Current Environment
+**LionsFlow Control Plane** - מערכת ניהול מרכזית ל-GCP מבוססת Hub & Spoke עם Flowise AI. מאפשרת ניהול ותשאול של פרויקטים מרובים מנקודת כניסה אחת מאובטחת.
+
+### Environment
 - **User**: admin@lionsofzion-official.org
-- **Hub Project**: lionspace (existing project, folder: 172983073065)
-- **Spoke Project**: lionspace-spoke-prod (to be created under same folder)
+- **Hub Project**: lionspace (folder: 172983073065)
+- **Spoke Project**: lionspace-spoke-prod
 - **Region**: us-central1
 
-## Architecture: Hub & Spoke Model
-
-### Hub (lionspace)
-- Runs Flowise on Cloud Run
-- Single secure entry point for all management
-- Private network connectivity to all spokes
-- Service Account: flowise-agent@lionspace.iam.gserviceaccount.com
-
-### Spokes (e.g., lionspace-spoke-prod)
-- Individual organizational projects
-- Connected via Network Connectivity Center (NCC)
-- Run Cloud Functions (2nd Gen) for specific operations
-- Private communication only - no public exposure
-
-### Network
-- Google VPC with private subnets
-- Network Connectivity Center (NCC) for Hub-Spoke backbone
-- VPC Access Connector for Cloud Run → VPC communication
-- All traffic stays internal
-
-## Technology Stack
-
-| Component | Technology |
-|-----------|-----------|
-| IaC | Terraform |
-| Hub Compute | Cloud Run (serverless) |
-| Spoke Compute | Cloud Functions Gen2 |
-| Networking | VPC + NCC |
-| AI/UI | Flowise |
-| Container Registry | Artifact Registry |
-| CI/CD | Cloud Build |
-| Security | IAM + IAP |
-| Secrets | Secret Manager |
-
-## Security Principles (CRITICAL)
-
-1. **Input Validation**: Always validate inputs to Cloud Functions (use Zod)
-2. **IAP**: All UI access gated by Identity-Aware Proxy
-3. **Least Privilege IAM**: Service accounts have minimal required permissions
-4. **Input/Output Sanitization**: Prevent injection and XSS
-5. **Secret Manager**: Never hardcode credentials
-6. **VPC Service Controls**: Production perimeter protection
-7. **Monitoring**: Alerts for unusual activity and budget overruns
+### Architecture Components
+- **Hub**: Cloud Run (Flowise) + NCC Hub + VPC
+- **Spoke**: Cloud Functions Gen2 + NCC Spoke
+- **Networking**: VPC + Network Connectivity Center (private only)
+- **Security**: IAM + IAP + Secret Manager
 
 ## Project Structure
+
 ```
 lionsflow/
 ├── terraform/
-│   ├── hub/              # Hub infrastructure (VPC, Hub, Service Account)
+│   ├── hub/              # Hub: VPC, NCC Hub, Service Account
 │   │   ├── main.tf
 │   │   └── variables.tf
-│   └── spoke/            # Spoke infrastructure (Function, Spoke connection)
+│   └── spoke/            # Spoke: Cloud Function, NCC Spoke
 │       ├── main.tf
 │       └── variables.tf
 ├── functions/
-│   └── list-vms/         # Example Cloud Function
+│   └── list-vms/         # Node.js Cloud Function example
 │       ├── index.js
 │       └── package.json
-├── plan/                 # Deployment plan & progress tracking
-│   ├── plan.md           # Full deployment guide (Hebrew)
+├── plan/
+│   ├── plan.md           # תכנית פריסה מפורטת (עברית)
 │   └── progress-tracker.json
-├── MISSION.md            # Automated deployment mission for agents
-├── CLAUDE.md             # This file - context for Claude Code
-├── Dockerfile            # Flowise container
-└── cloudbuild.yaml       # CI/CD configuration
+├── diagrams/             # HTML diagrams (מעקב התקדמות)
+├── Dockerfile            # Multi-stage build for Flowise
+└── cloudbuild.yaml       # CI/CD for Cloud Run deployment
 ```
 
-## Common Operations
+## Common Commands
 
-### Terraform Workflow
+### Terraform
+
 ```bash
+# Hub infrastructure
 cd terraform/hub
 terraform init
 terraform plan -var="hub_project_id=lionspace"
 terraform apply -var="hub_project_id=lionspace"
+
+# Spoke infrastructure (requires zipped function source)
+cd terraform/spoke
+terraform init
+terraform plan -var="hub_project_id=lionspace" \
+  -var="spoke_project_id=lionspace-spoke-prod" \
+  -var="function_source_path=../../functions/list-vms/source.zip"
+terraform apply -var="hub_project_id=lionspace" \
+  -var="spoke_project_id=lionspace-spoke-prod" \
+  -var="function_source_path=../../functions/list-vms/source.zip"
 ```
 
-### Verification Commands
-```bash
-# Check NCC Hub status
-gcloud network-connectivity hubs describe main-control-hub --global --project=lionspace
+### Cloud Function Preparation
 
-# Check Spoke status (should be ACTIVE)
-gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke --global --project=lionspace-spoke-prod
+```bash
+cd functions/list-vms
+npm install
+zip -r source.zip .
+```
+
+### Cloud Build & Deployment
+
+```bash
+# Build and deploy Flowise to Cloud Run
+gcloud builds submit . --config=cloudbuild.yaml --project=lionspace
+```
+
+### Verification & Debugging
+
+```bash
+# NCC Hub status
+gcloud network-connectivity hubs describe main-control-hub \
+  --global --project=lionspace
+
+# NCC Spoke status (should be ACTIVE after acceptance)
+gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke \
+  --global --project=lionspace-spoke-prod
 
 # Cloud Run logs
-gcloud run logs tail flowise-control-plane --project=lionspace --region=us-central1
+gcloud run logs tail flowise-control-plane \
+  --project=lionspace --region=us-central1
 
 # Cloud Function logs
-gcloud functions logs read list-vms-function --project=lionspace-spoke-prod --region=us-central1 --gen2
+gcloud functions logs read list-vms-function \
+  --project=lionspace-spoke-prod --region=us-central1 --gen2
 
 # Verify IAM permissions
 gcloud projects get-iam-policy lionspace-spoke-prod \
   --flatten="bindings[].members" \
   --filter="bindings.members:flowise-agent@lionspace.iam.gserviceaccount.com"
+
+# Enable required APIs
+gcloud services enable cloudresourcemanager.googleapis.com \
+  cloudbuild.googleapis.com artifactregistry.googleapis.com \
+  run.googleapis.com vpcaccess.googleapis.com \
+  networkconnectivity.googleapis.com compute.googleapis.com \
+  iam.googleapis.com --project=lionspace
 ```
 
-### Cloud Build
+## Key Workflows
+
+### Accept Spoke Connection (Hub-Spoke Handshake)
+
 ```bash
-gcloud builds submit . --config=cloudbuild.yaml --project=lionspace
+# Run from Hub project after Spoke is created
+gcloud network-connectivity spokes accept lionspace-spoke-prod-spoke \
+  --global --project=lionspace
 ```
 
-## Deployment Phases
+### Grant Hub Service Account Access to Spoke
 
-### Phase 0: Prerequisites
-- Verify GCP account access (admin@lionsofzion-official.org)
-- Install: gcloud, terraform, git, docker, node 18+
-- Authenticate and configure gcloud
-- Verify project lionspace exists in folder 172983073065
+```bash
+# Function invoker permission
+gcloud functions add-iam-policy-binding list-vms-function \
+  --project=lionspace-spoke-prod --region=us-central1 \
+  --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" \
+  --role="roles/cloudfunctions.invoker"
 
-### Phase 1: Project Structure
-- Create terraform/, functions/, orchestration/ directories
-- Populate all Terraform configs, Cloud Function code, Dockerfile, cloudbuild.yaml
-
-### Phase 2: GCP Foundations
-- Create lionspace-spoke-prod project in folder 172983073065
-- Link billing accounts
-- Enable required APIs (compute, iam, networking, functions, run, etc.)
-
-### Phase 3: Hub Infrastructure
-- Deploy Hub VPC, subnet, NCC Hub
-- Create flowise-agent service account
-- Validate resources
-
-### Phase 4: Spoke Infrastructure
-- Package and deploy Cloud Function
-- Deploy Spoke VPC connection to Hub
-- Validate Spoke status (PENDING → ACTIVE after acceptance)
-
-### Phase 5: Network & IAM
-- Accept Spoke connection from Hub
-- Grant IAM permissions (cloudfunctions.invoker, compute.viewer)
-- Validate connectivity and permissions
-
-### Phase 6: Flowise Deployment
-- Clone Flowise repository
-- Create VPC Access Connector
-- Build and push Docker image
-- Deploy to Cloud Run with service account and VPC egress
-
-### Phase 7: Security (IAP)
-- Configure OAuth Consent Screen
-- Create OAuth Client ID
-- Enable IAP on Cloud Run
-- Grant IAP access to admin@lionsofzion-official.org
-
-### Phase 8: Testing
-- Configure Custom Tools in Flowise
-- End-to-end test: Query VMs across projects
-- Validate full workflow
-
-### Phase 9: Production Hardening
-- Set up monitoring and alerts
-- Configure VPC Service Controls
-- Audit and minimize IAM permissions
-
-## Performance Optimization
-
-### Cloud Run
-- **Dev/Staging**: Scale to zero (cost saving)
-- **Production**: min-instances=1 (eliminate cold starts)
-- Set reasonable max-instances for cost control
-
-### Cloud Functions
-- Set min-instances=1 for frequently used functions
-- Allocate sufficient memory (more CPU = faster execution)
-- Initialize clients in global scope (reuse across invocations)
-
-### Network
-- Keep all resources in same region (us-central1)
-- NCC provides high-bandwidth, low-latency backbone
-
-## Debugging Checklist
-
-1. **Cloud Run not responding**: Check logs with `gcloud run logs tail`
-2. **Function errors**: Check function logs and IAM permissions
-3. **IAM issues**: Verify service account has required roles in spoke
-4. **Network issues**: Verify NCC Hub/Spoke are ACTIVE, check firewall rules
-5. **IAP access denied**: Verify user has IAP-secured Web App User role
-
-## Resources
-- [Cloud Run Docs](https://cloud.google.com/run/docs)
-- [Network Connectivity Center](https://cloud.google.com/network-connectivity/docs/network-connectivity-center)
-- [Terraform on GCP](https://cloud.google.com/docs/terraform)
-- [Identity-Aware Proxy](https://cloud.google.com/iap/docs)
-- [Flowise](https://flowiseai.com/)
-
-## Agent Guidelines
-
-When working on this project:
-
-1. **Always use gcp-infrastructure-admin agent** for GCP infrastructure tasks
-2. **Execute MISSION.md automatically** - follow all steps in sequence
-3. **Validate each step** before proceeding to next
-4. **Track progress** using progress-tracker.json
-5. **Security first**: Never compromise on IAM, secrets, or network security
-6. **Stop on errors**: If something fails, report to user immediately
-7. **Manual steps**: For OAuth/IAP setup (step 7), stop and inform user
-
-## Key Files to Reference
-- **`MISSION.md`** - Complete automated deployment mission (START HERE)
-- **`plan/plan.md`** - Detailed Hebrew deployment guide
-- **`plan/progress-tracker.json`** - Progress tracking
-- **`CLAUDE.md`** - This file (architecture & context)
-
-## How to Start Deployment
-
-User should open a new chat and type:
+# Compute viewer permission
+gcloud projects add-iam-policy-binding lionspace-spoke-prod \
+  --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" \
+  --role="roles/compute.viewer"
 ```
-@gcp-infrastructure-admin @MISSION.md תתחיל לבצע את המשימה הזו שלב אחרי שלב
+
+### Create VPC Access Connector (for Cloud Run)
+
+```bash
+gcloud compute networks vpc-access connectors create hub-connector \
+  --project=lionspace --region=us-central1 \
+  --network=hub-vpc --range=10.8.0.0/28
 ```
+
+## Architecture Notes
+
+### Hub & Spoke Model
+- **Hub** מנהל את כל התקשורת המרכזית דרך NCC
+- **Spokes** מחוברים לHub ומבצעים פעולות ספציפיות דרך Cloud Functions
+- **All traffic is private** - אין חשיפה לאינטרנט הציבורי
+
+### Service Account Flow
+1. Cloud Run (Flowise) runs as `flowise-agent@lionspace.iam.gserviceaccount.com`
+2. Service Account must have `cloudfunctions.invoker` on each Spoke function
+3. Service Account must have minimal viewer permissions in each Spoke project
+
+### Networking Flow
+1. Cloud Run → VPC Access Connector → Hub VPC
+2. Hub VPC → NCC Hub → NCC Spoke → Spoke VPC
+3. Spoke VPC → Cloud Function (internal ingress only)
+
+## Security Requirements
+
+1. **Input Validation**: Always use Zod or similar for Cloud Function inputs
+2. **IAM Least Privilege**: Service accounts get minimal required roles only
+3. **IAP Protection**: Cloud Run must be protected by Identity-Aware Proxy
+4. **Secret Manager**: Never hardcode credentials - use Secret Manager
+5. **Internal-Only Functions**: Cloud Functions must use `ALLOW_INTERNAL_ONLY` ingress
+
+## Known Issues & Blockers
+
+### Organization Policy Constraint
+- **Issue**: Cloud Build service account blocked by Org Policy
+- **Workaround**: Deploy functions manually or request Org Policy exception
+- **Error**: `constraints/iam.allowedPolicyMemberDomains`
+
+### NCC Spoke State
+- Spokes are created in `PENDING` state
+- Must be explicitly accepted from Hub project → `ACTIVE`
+
+## Critical Files
+
+- **terraform/hub/main.tf**: Hub infrastructure (lines 18-21 = NCC Hub, 23-26 = Service Account)
+- **terraform/spoke/main.tf**: Spoke infrastructure (lines 40-48 = NCC Spoke, 19-38 = Cloud Function)
+- **functions/list-vms/index.js**: Example Cloud Function (lines 4-23 = HTTP handler with ADC auth)
+- **cloudbuild.yaml**: CI/CD pipeline (lines 10-23 = Cloud Run deployment with VPC egress)
+- **plan/plan.md**: Detailed Hebrew deployment guide with checklist
+
+## Quick Reference
+
+**Service Account**: `flowise-agent@lionspace.iam.gserviceaccount.com`
+**NCC Hub**: `main-control-hub`
+**Cloud Run Service**: `flowise-control-plane`
+**VPC**: `hub-vpc` (10.0.1.0/24)
+**VPC Connector**: `hub-connector` (10.8.0.0/28)

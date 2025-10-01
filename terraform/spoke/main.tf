@@ -4,9 +4,10 @@ provider "google" {
 }
 
 resource "google_storage_bucket" "function_source_bucket" {
-  name          = "${var.spoke_project_id}-function-source"
-  location      = var.region
-  force_destroy = true
+  name                        = "${var.spoke_project_id}-function-source"
+  location                    = var.region
+  force_destroy               = true
+  uniform_bucket_level_access = true
 }
 
 resource "google_storage_bucket_object" "archive" {
@@ -22,7 +23,12 @@ resource "google_cloudfunctions2_function" "list_vms_function" {
   build_config {
     runtime     = "nodejs18"
     entry_point = "listVMs"
-    source { storage_source { bucket = google_storage_bucket.function_source_bucket.name; object = google_storage_bucket_object.archive.name } }
+    source {
+      storage_source {
+        bucket = google_storage_bucket.function_source_bucket.name
+        object = google_storage_bucket_object.archive.name
+      }
+    }
   }
 
   service_config {
@@ -37,6 +43,7 @@ resource "google_network_connectivity_spoke" "spoke_connection" {
   hub      = "projects/${var.hub_project_id}/locations/global/hubs/main-control-hub"
 
   linked_vpc_network {
-    uri = "projects/${var.spoke_project_id}/global/networks/default"
+    uri                     = "projects/${var.spoke_project_id}/global/networks/default"
+    exclude_export_ranges   = []
   }
 }

@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LionsFlow Control Plane - מעקב התקדמות</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-blue: #3b82f6;
+            --brand-green: #22c55e;
+            --brand-purple: #9333ea;
+            --brand-gray: #e5e7eb;
+            --text-dark: #1f2937;
+            --canvas-bg: #f9fafb;
+        }
+        body {
+            font-family: 'Assistant', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .container-custom {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .phase-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-right: 6px solid var(--brand-gray);
+        }
+        .phase-card.completed {
+            border-right-color: var(--brand-green);
+        }
+        .phase-card.active {
+            border-right-color: var(--brand-blue);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2);
+        }
+        .phase-card.pending {
+            opacity: 0.7;
+        }
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .phase-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--brand-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #6b7280;
+        }
+        .completed .phase-number {
+            background: var(--brand-green);
+            color: white;
+        }
+        .active .phase-number {
+            background: var(--brand-blue);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .phase-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            transition: background 0.2s;
+        }
+        .checklist-item:hover {
+            background: #f3f4f6;
+        }
+        .checklist-item input {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: var(--brand-green);
+        }
+        .checklist-item label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .checklist-item input:checked + label {
+            text-decoration: line-through;
+            color: #9ca3af;
+        }
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            direction: ltr;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .badge-completed { background: #dcfce7; color: #166534; }
+        .badge-active { background: #dbeafe; color: #1e40af; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .project-info {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .info-item {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+        .info-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .info-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-custom">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4">🦁 LionsFlow Control Plane</h1>
+            <p class="text-xl text-white opacity-90">מערכת ניהול מרכזית מאובטחת ל-GCP</p>
+        </div>
+
+        <div class="project-info">
+            <h2 class="text-2xl font-bold mb-4">פרטי הפרויקט</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">פרויקט Hub</div>
+                    <div class="info-value">lionspace</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">פרויקט Spoke</div>
+                    <div class="info-value">lionspace-spoke-prod</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">תיקייה ארגונית</div>
+                    <div class="info-value">172983073065</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">אזור</div>
+                    <div class="info-value">us-central1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">משתמש מנהל</div>
+                    <div class="info-value">admin@lionsofzion-official.org</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Service Account</div>
+                    <div class="info-value">flowise-agent@lionspace.iam.gserviceaccount.com</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 0 -->
+        <div class="phase-card pending" id="phase-0">
+            <div class="phase-header">
+                <div class="phase-number">0</div>
+                <div>
+                    <div class="phase-title">הכנות מקדימות</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-1" data-phase="0">
+                    <label for="check-0-1">אימות גישה לחשבון GCP (admin@lionsofzion-official.org)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-2" data-phase="0">
+                    <label for="check-0-2">התקנת gcloud CLI</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-3" data-phase="0">
+                    <label for="check-0-3">התקנת Terraform (v1.0+)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-4" data-phase="0">
+                    <label for="check-0-4">התקנת Docker Desktop</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-5" data-phase="0">
+                    <label for="check-0-5">התקנת Node.js 18+</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-6" data-phase="0">
+                    <label for="check-0-6">אימות: gcloud auth login</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-0-7" data-phase="0">
+                    <label for="check-0-7">קונפיגורציה: gcloud auth configure-docker</label>
+                </div>
+            </div>
+            <div class="code-block">gcloud auth login
+gcloud auth application-default login
+gcloud auth configure-docker us-central1-docker.pkg.dev</div>
+        </div>
+
+        <!-- Phase 1 -->
+        <div class="phase-card pending" id="phase-1">
+            <div class="phase-header">
+                <div class="phase-number">1</div>
+                <div>
+                    <div class="phase-title">מבנה הפרויקט והקבצים</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-1-1" data-phase="1">
+                    <label for="check-1-1">יצירת מבנה תיקיות: terraform/hub, terraform/spoke, functions/</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-1-2" data-phase="1">
+                    <label for="check-1-2">יצירת קבצי Terraform: main.tf, variables.tf</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-1-3" data-phase="1">
+                    <label for="check-1-3">יצירת Cloud Function: functions/list-vms/index.js</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-1-4" data-phase="1">
+                    <label for="check-1-4">יצירת Dockerfile לאפליקציית Flowise</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-1-5" data-phase="1">
+                    <label for="check-1-5">יצירת cloudbuild.yaml עבור CI/CD</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="phase-card pending" id="phase-2">
+            <div class="phase-header">
+                <div class="phase-number">2</div>
+                <div>
+                    <div class="phase-title">הקמת יסודות GCP</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-2-1" data-phase="2">
+                    <label for="check-2-1">יצירת פרויקט lionspace-spoke-prod בתיקייה 172983073065</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-2-2" data-phase="2">
+                    <label for="check-2-2">קישור חשבון חיוב לפרויקט Spoke</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-2-3" data-phase="2">
+                    <label for="check-2-3">הפעלת APIs בפרויקט Hub (lionspace)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-2-4" data-phase="2">
+                    <label for="check-2-4">הפעלת APIs בפרויקט Spoke</label>
+                </div>
+            </div>
+            <div class="code-block"># יצירת פרויקט Spoke
+gcloud projects create lionspace-spoke-prod \\
+  --name="Lionspace Spoke Project" \\
+  --folder=172983073065
+
+# קישור לחיוב
+gcloud beta billing projects link lionspace-spoke-prod \\
+  --billing-account [YOUR_BILLING_ACCOUNT_ID]
+
+# הפעלת APIs ב-Hub
+gcloud services enable compute.googleapis.com networkconnectivity.googleapis.com \\
+  cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com \\
+  vpcaccess.googleapis.com iam.googleapis.com iap.googleapis.com \\
+  --project=lionspace
+
+# הפעלת APIs ב-Spoke
+gcloud services enable compute.googleapis.com networkconnectivity.googleapis.com \\
+  cloudfunctions.googleapis.com iam.googleapis.com \\
+  --project=lionspace-spoke-prod</div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="phase-card pending" id="phase-3">
+            <div class="phase-header">
+                <div class="phase-number">3</div>
+                <div>
+                    <div class="phase-title">פריסת תשתית Hub</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-3-1" data-phase="3">
+                    <label for="check-3-1">terraform init בתיקיית hub</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-3-2" data-phase="3">
+                    <label for="check-3-2">terraform apply: יצירת hub-vpc ו-subnet</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-3-3" data-phase="3">
+                    <label for="check-3-3">יצירת NCC Hub: main-control-hub</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-3-4" data-phase="3">
+                    <label for="check-3-4">יצירת Service Account: flowise-agent</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-3-5" data-phase="3">
+                    <label for="check-3-5">אימות: gcloud network-connectivity hubs describe</label>
+                </div>
+            </div>
+            <div class="code-block">cd terraform/hub
+terraform init
+terraform apply -auto-approve -var="hub_project_id=lionspace"
+
+# אימות
+gcloud network-connectivity hubs describe main-control-hub \\
+  --global --project=lionspace</div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="phase-card pending" id="phase-4">
+            <div class="phase-header">
+                <div class="phase-number">4</div>
+                <div>
+                    <div class="phase-title">פריסת תשתית Spoke</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-4-1" data-phase="4">
+                    <label for="check-4-1">אריזת Cloud Function: npm install && zip source.zip</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-4-2" data-phase="4">
+                    <label for="check-4-2">terraform init בתיקיית spoke</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-4-3" data-phase="4">
+                    <label for="check-4-3">terraform apply: פריסת Cloud Function</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-4-4" data-phase="4">
+                    <label for="check-4-4">יצירת Spoke Connection ל-Hub</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-4-5" data-phase="4">
+                    <label for="check-4-5">אימות: בדיקת מצב Spoke (PENDING)</label>
+                </div>
+            </div>
+            <div class="code-block">cd functions/list-vms
+npm install
+zip -r source.zip .
+
+cd ../../terraform/spoke
+terraform init
+terraform apply -auto-approve \\
+  -var="hub_project_id=lionspace" \\
+  -var="spoke_project_id=lionspace-spoke-prod" \\
+  -var="function_source_path=../../functions/list-vms/source.zip"
+
+# אימות
+gcloud network-connectivity spokes describe lionspace-spoke-prod-spoke \\
+  --global --project=lionspace-spoke-prod</div>
+        </div>
+
+        <!-- Phase 5 -->
+        <div class="phase-card pending" id="phase-5">
+            <div class="phase-header">
+                <div class="phase-number">5</div>
+                <div>
+                    <div class="phase-title">חיבור רשת והרשאות (Handshake)</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-5-1" data-phase="5">
+                    <label for="check-5-1">אישור Spoke Connection מפרויקט Hub</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-5-2" data-phase="5">
+                    <label for="check-5-2">הענקת הרשאת cloudfunctions.invoker ל-flowise-agent</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-5-3" data-phase="5">
+                    <label for="check-5-3">הענקת הרשאת compute.viewer ל-flowise-agent</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-5-4" data-phase="5">
+                    <label for="check-5-4">אימות: בדיקת מצב Spoke (ACTIVE)</label>
+                </div>
+            </div>
+            <div class="code-block"># אישור חיבור
+gcloud network-connectivity spokes accept lionspace-spoke-prod-spoke \\
+  --global --project=lionspace
+
+# הרשאות Cloud Function
+gcloud functions add-iam-policy-binding list-vms-function \\
+  --project=lionspace-spoke-prod --region=us-central1 \\
+  --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" \\
+  --role="roles/cloudfunctions.invoker"
+
+# הרשאות Compute
+gcloud projects add-iam-policy-binding lionspace-spoke-prod \\
+  --member="serviceAccount:flowise-agent@lionspace.iam.gserviceaccount.com" \\
+  --role="roles/compute.viewer"</div>
+        </div>
+
+        <!-- Phase 6 -->
+        <div class="phase-card pending" id="phase-6">
+            <div class="phase-header">
+                <div class="phase-number">6</div>
+                <div>
+                    <div class="phase-title">פריסת Flowise ל-Cloud Run</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-6-1" data-phase="6">
+                    <label for="check-6-1">שכפול מאגר Flowise מ-GitHub</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-6-2" data-phase="6">
+                    <label for="check-6-2">יצירת VPC Access Connector: hub-connector</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-6-3" data-phase="6">
+                    <label for="check-6-3">יצירת Artifact Registry repository</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-6-4" data-phase="6">
+                    <label for="check-6-4">בנייה ופריסה עם Cloud Build</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-6-5" data-phase="6">
+                    <label for="check-6-5">אימות: קבלת URL של Cloud Run service</label>
+                </div>
+            </div>
+            <div class="code-block">git clone https://github.com/FlowiseAI/Flowise.git
+cp Dockerfile cloudbuild.yaml Flowise/
+
+# יצירת VPC Connector
+gcloud compute networks vpc-access connectors create hub-connector \\
+  --project=lionspace --region=us-central1 \\
+  --network=hub-vpc --range=10.8.0.0/28
+
+# פריסה
+cd Flowise
+gcloud builds submit . --config=cloudbuild.yaml --project=lionspace</div>
+        </div>
+
+        <!-- Phase 7 -->
+        <div class="phase-card pending" id="phase-7">
+            <div class="phase-header">
+                <div class="phase-number">7</div>
+                <div>
+                    <div class="phase-title">אבטחת גישה עם IAP</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-7-1" data-phase="7">
+                    <label for="check-7-1">הגדרת OAuth Consent Screen (ידנית)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-7-2" data-phase="7">
+                    <label for="check-7-2">יצירת OAuth Client ID (ידנית)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-7-3" data-phase="7">
+                    <label for="check-7-3">הפעלת IAP על Cloud Run</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-7-4" data-phase="7">
+                    <label for="check-7-4">הענקת הרשאות למשתמש: run.invoker</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-7-5" data-phase="7">
+                    <label for="check-7-5">בדיקת גישה דרך IAP</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 8 -->
+        <div class="phase-card pending" id="phase-8">
+            <div class="phase-header">
+                <div class="phase-number">8</div>
+                <div>
+                    <div class="phase-title">בדיקות ואינטגרציה</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-8-1" data-phase="8">
+                    <label for="check-8-1">יצירת Chatflow ב-Flowise</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-8-2" data-phase="8">
+                    <label for="check-8-2">הוספת Custom Tool לקריאת Cloud Function</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-8-3" data-phase="8">
+                    <label for="check-8-3">בדיקת תשאול VMs מפרויקט Spoke</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-8-4" data-phase="8">
+                    <label for="check-8-4">אימות זרימה מקצה לקצה</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase 9 -->
+        <div class="phase-card pending" id="phase-9">
+            <div class="phase-header">
+                <div class="phase-number">9</div>
+                <div>
+                    <div class="phase-title">הקשחת Production</div>
+                    <span class="badge badge-pending">ממתין</span>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-9-1" data-phase="9">
+                    <label for="check-9-1">הגדרת Uptime Checks</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-9-2" data-phase="9">
+                    <label for="check-9-2">יצירת Alerting Policies</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-9-3" data-phase="9">
+                    <label for="check-9-3">הקמת VPC Service Controls</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-9-4" data-phase="9">
+                    <label for="check-9-4">סקירת הרשאות IAM (Least Privilege)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check-9-5" data-phase="9">
+                    <label for="check-9-5">תיעוד סופי ו-Runbook</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-white mt-8">
+            <p class="text-lg">🚀 בהצלחה בהקמת מערכת LionsFlow Control Plane!</p>
+        </div>
+    </div>
+
+    <script>
+        // Track progress
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const phase = checkbox.dataset.phase;
+                updatePhaseStatus(phase);
+                saveProgress();
+            });
+        });
+
+        function updatePhaseStatus(phaseId) {
+            const phaseCard = document.getElementById(`phase-${phaseId}`);
+            const phaseCheckboxes = phaseCard.querySelectorAll('input[type="checkbox"]');
+            const checkedCount = Array.from(phaseCheckboxes).filter(cb => cb.checked).length;
+            const total = phaseCheckboxes.length;
+            const badge = phaseCard.querySelector('.badge');
+
+            if (checkedCount === total) {
+                phaseCard.classList.remove('pending', 'active');
+                phaseCard.classList.add('completed');
+                badge.className = 'badge badge-completed';
+                badge.textContent = 'הושלם ✓';
+            } else if (checkedCount > 0) {
+                phaseCard.classList.remove('pending', 'completed');
+                phaseCard.classList.add('active');
+                badge.className = 'badge badge-active';
+                badge.textContent = `בתהליך (${checkedCount}/${total})`;
+            } else {
+                phaseCard.classList.remove('completed', 'active');
+                phaseCard.classList.add('pending');
+                badge.className = 'badge badge-pending';
+                badge.textContent = 'ממתין';
+            }
+        }
+
+        function saveProgress() {
+            const progress = {};
+            checkboxes.forEach(cb => {
+                progress[cb.id] = cb.checked;
+            });
+            localStorage.setItem('lionsflow-progress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('lionsflow-progress');
+            if (saved) {
+                const progress = JSON.parse(saved);
+                Object.keys(progress).forEach(id => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox) {
+                        checkbox.checked = progress[id];
+                    }
+                });
+                // Update all phase statuses
+                for (let i = 0; i <= 9; i++) {
+                    updatePhaseStatus(i.toString());
+                }
+            }
+        }
+
+        // Load progress on page load
+        loadProgress();
+    </script>
+</body>
+</html>
