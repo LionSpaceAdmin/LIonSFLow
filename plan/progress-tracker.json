@@ -1,0 +1,105 @@
+{
+  "project": "LionsFlow Control Plane - Lionspace",
+  "lastUpdated": "2025-10-01T12:30:00Z",
+  "currentStatus": {
+    "account": "admin@lionsofzion-official.org",
+    "hubProject": "lionspace (exists, folder: 172983073065, billing: 015F38-D19F46-0B1ABA)",
+    "spokeProject": "lionspace-spoke-prod (created, billing: 0166C4-C7C674-5C4026)",
+    "terraformDir": "created - all files ready",
+    "hubInfrastructure": "deployed - VPC, NCC Hub (ACTIVE), Service Account created",
+    "notes": "Steps 1-3 completed - Hub infrastructure deployed successfully"
+  },
+  "steps": {
+    "step0": {
+      "name": "הכנות מקדימות (Prerequisites)",
+      "status": "completed",
+      "substeps": {
+        "0.1": {"name": "ודא קיום חשבון Google Cloud", "status": "completed", "validated": true},
+        "0.2": {"name": "התקן כלים נדרשים", "status": "completed", "validated": true},
+        "0.3": {"name": "אימות וקונפיגורציה", "status": "completed", "validated": true}
+      }
+    },
+    "step1": {
+      "name": "מבנה הפרויקט ומקור הריפו",
+      "status": "completed",
+      "substeps": {
+        "1.1": {"name": "צור מבנה תיקיות", "status": "completed", "validated": true},
+        "1.2": {"name": "מלא קבצים (Terraform, Functions, Docker)", "status": "completed", "validated": true}
+      }
+    },
+    "step2": {
+      "name": "הקמת יסודות ב-GCP",
+      "status": "completed",
+      "substeps": {
+        "2.1": {"name": "צור פרויקטים", "status": "completed", "validated": true},
+        "2.2": {"name": "קשר לחיוב", "status": "completed", "validated": true},
+        "2.3": {"name": "הפעל APIs", "status": "completed", "validated": true}
+      }
+    },
+    "step3": {
+      "name": "פריסת תשתית Hub",
+      "status": "completed",
+      "substeps": {
+        "3.1": {"name": "Terraform Hub Init & Apply", "status": "completed", "validated": true},
+        "3.2": {"name": "אימות Hub ו-Service Account", "status": "completed", "validated": true}
+      }
+    },
+    "step4": {
+      "name": "פריסת תשתית Spoke",
+      "status": "pending",
+      "substeps": {
+        "4.1": {"name": "הכן Cloud Function", "status": "pending", "validated": false},
+        "4.2": {"name": "Terraform Spoke Init & Apply", "status": "pending", "validated": false},
+        "4.3": {"name": "אימות Spoke ו-Function", "status": "pending", "validated": false}
+      }
+    },
+    "step5": {
+      "name": "חיבור רשת והרשאות",
+      "status": "pending",
+      "substeps": {
+        "5.1": {"name": "אשר Spoke Connection", "status": "pending", "validated": false},
+        "5.2": {"name": "הענק הרשאות IAM", "status": "pending", "validated": false},
+        "5.3": {"name": "אימות רשת והרשאות", "status": "pending", "validated": false}
+      }
+    },
+    "step6": {
+      "name": "פריסת Flowise",
+      "status": "pending",
+      "substeps": {
+        "6.1": {"name": "שכפל Flowise Repository", "status": "pending", "validated": false},
+        "6.2": {"name": "העתק Dockerfile ו-CloudBuild", "status": "pending", "validated": false},
+        "6.3": {"name": "צור VPC Connector", "status": "pending", "validated": false},
+        "6.4": {"name": "הרץ Cloud Build", "status": "pending", "validated": false},
+        "6.5": {"name": "אימות Cloud Run Service", "status": "pending", "validated": false}
+      }
+    },
+    "step7": {
+      "name": "אבטחת גישה (IAP)",
+      "status": "pending",
+      "substeps": {
+        "7.1": {"name": "הגדר OAuth Consent Screen", "status": "pending", "validated": false},
+        "7.2": {"name": "צור OAuth Client ID", "status": "pending", "validated": false},
+        "7.3": {"name": "הפעל IAP", "status": "pending", "validated": false},
+        "7.4": {"name": "הענק הרשאות משתמשים", "status": "pending", "validated": false},
+        "7.5": {"name": "אימות IAP", "status": "pending", "validated": false}
+      }
+    },
+    "step8": {
+      "name": "הגדרות סופיות ובדיקות",
+      "status": "pending",
+      "substeps": {
+        "8.1": {"name": "הגדר Custom Tool ב-Flowise", "status": "pending", "validated": false},
+        "8.2": {"name": "בדיקת End-to-End", "status": "pending", "validated": false}
+      }
+    },
+    "step9": {
+      "name": "Production Hardening",
+      "status": "pending",
+      "substeps": {
+        "9.1": {"name": "ניטור והתראות", "status": "pending", "validated": false},
+        "9.2": {"name": "VPC Service Controls", "status": "pending", "validated": false},
+        "9.3": {"name": "סקירת הרשאות IAM", "status": "pending", "validated": false}
+      }
+    }
+  }
+}

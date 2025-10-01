@@ -1,0 +1,26 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build'
+  args: ['build', '-t', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/flowise-repo/flowise-app:latest', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push'
+  args: ['push', '${_REGION}-docker.pkg.dev/${PROJECT_ID}/flowise-repo/flowise-app:latest']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: 'Deploy'
+  entrypoint: 'gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - 'flowise-control-plane'
+    - '--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/flowise-repo/flowise-app:latest'
+    - '--region=${_REGION}'
+    - '--project=${PROJECT_ID}'
+    - '--service-account=flowise-agent@${PROJECT_ID}.iam.gserviceaccount.com'
+    - '--vpc-connector=hub-connector'
+    - '--vpc-egress=all-traffic'
+    - '--ingress=internal-and-cloud-load-balancing'
+
+substitutions:
+  _REGION: 'us-central1'
