@@ -405,57 +405,67 @@
 
 ---
 
-## שלב 6: פריסת אפליקציית Flowise 🔄 (בתהליך - נעצר כאן)
+## שלב 6: פריסת אפליקציית Flowise 🔄 (בתהליך)
 
-### 🚨 נקודת העצירה הנוכחית:
+### משימות שהושלמו:
 
-**מצב נוכחי:**
-- ✅ VPC Access Connector במצב READY
-- ✅ Cloud Build הושלם בהצלחה
-- ❌ **Cloud Run נכשל להתחיל**
-
-**הבעיה:**
-Cloud Run deployment נכשל עם השגיאה:
-```
-X Revision 'flowise-control-plane-00001-6pp' is not ready and cannot serve traffic.
-The user-provided container failed to start and listen on the port defined
-provided by the PORT=8080 environment variable within the allocated timeout.
-```
-
-**לוגים:** https://console.cloud.google.com/logs/viewer?project=lionspace&resource=cloud_run_revision/service_name/flowise-control-plane/revision_name/flowise-control-plane-00001-6pp
-
-**משימות שהושלמו:**
 - [x] **1. שכפל את מאגר המקור של Flowise** (תיקייה: `Flowise/`)
-- [x] **2. העתק את ה-Dockerfile ו-cloudbuild.yaml**
+- [x] **2. תיקון Dockerfile:**
+  - שימוש ב-Dockerfile הרשמי של Flowise
+  - הגדלת NODE heap size ל-2GB
+  - קונפיגורציה ל-PORT=8080
+  - **ביטול אימות:** `FLOWISE_USERNAME=""` ו-`FLOWISE_PASSWORD=""`
+
 - [x] **3. צור VPC Access Connector** ✅ (state: READY)
-- [x] **4. הפעל את תהליך ה-CI/CD ב-Cloud Build** ✅ (build successful)
-- [x] **5. Deploy ל-Cloud Run** ⚠️ (deployed but container failing)
+- [x] **4. בדיקה מקומית:** ✅ Flowise עולה בהצלחה על http://localhost:8080
+- [x] **5. נקה פריסה:** מחיקת Dockerfile/cloudbuild מיותרים מהשורש
 
-**צעדים הבאים לפתרון:**
+### משימות בתהליך:
 
-1. **בדוק את הלוגים של Cloud Run:**
-   ```bash
-   gcloud run logs tail flowise-control-plane \
-     --project=lionspace --region=us-central1
-   ```
+- [ ] **6. צור Custom Tool לשאילתת VMs:**
+  ```bash
+  # מיקום: Flowise/custom-tools/list-gcp-vms.json
+  # הכלי קורא ל-Cloud Function ב-Spoke ומחזיר רשימת VMs
+  ```
 
-2. **אפשרויות לתיקון:**
-   - בדוק שה-Dockerfile מגדיר את PORT=3000 (Flowise default)
-   - הוסף משתנה סביבה PORT=8080 ל-Cloud Run
-   - בדוק שה-build stage עובד תקין
-   - בדוק שכל התלויות הותקנו נכון
+- [ ] **7. הפעל Cloud Build ופרוס ל-Cloud Run:**
+  ```bash
+  cd Flowise
+  gcloud builds submit . --config=cloudbuild.yaml --project=lionspace --timeout=20m
+  ```
 
-3. **בדיקת Dockerfile:**
-   - ודא שה-CMD מתאים למבנה של Flowise
-   - בדוק שה-node_modules נבנים תקין
-   - בדוק שה-packages/server/dist/index.js קיים
+- [ ] **8. ✅ אימות וולידציה:**
+  ```bash
+  # קבל URL
+  gcloud run services describe flowise-control-plane \
+    --project=lionspace --region=us-central1 --format="value(status.url)"
+
+  # בדוק שאין דף הרשמה (אימות מבוטל)
+  curl -I <URL>
+  ```
 
 ---
 
-### סטטוס רכיבים:
-- [x] **VPC Access Connector:** ✅ READY
-- [x] **Cloud Build:** ✅ SUCCESS
-- [ ] **Cloud Run Service:** ❌ FAILING (container won't start)
+### הגדרות חשובות ב-Dockerfile:
+
+```dockerfile
+ENV PORT=8080
+ENV FLOWISE_USERNAME=""
+ENV FLOWISE_PASSWORD=""
+ENV DISABLE_FLOWISE_TELEMETRY=true
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+```
+
+### הגדרות Cloud Run (cloudbuild.yaml):
+
+```yaml
+--memory=2Gi
+--cpu=2
+--port=8080
+--allow-unauthenticated
+--set-env-vars=FLOWISE_USERNAME=
+--set-env-vars=FLOWISE_PASSWORD=
+```
 
 ---
 
@@ -495,16 +505,40 @@ provided by the PORT=8080 environment variable within the allocated timeout.
 
 ---
 
-## שלב 8: הגדרות סופיות ובדיקות ⏳ (ממתין להשלמת שלבים 6-7)
+## שלב 8: הגדרות סופיות ובדיקות ⏳ (ממתין להשלמת שלב 6)
 
-- [ ] **1. צור והגדר כלי מותאם אישית ב-Flowise:**
-  - [ ] בממשק של Flowise, צור Chatflow חדש.
-  - [ ] הוסף "Custom Tool" והדבק בו את קוד ה-JavaScript המתאים.
-  - [ ] חבר את הכלי לסוכן (Agent) בזרימת השיחה.
+### 1. ייבוא Custom Tool ל-Flowise:
 
-- [ ] **2. בדוק את המערכת מקצה לקצה:**
-  - [ ] ב-Chatflow, שאל את הסוכן: "הצג לי את כל המכונות בפרויקט `lionspace-spoke-prod`".
-  - [ ] **✅ אימות וולידציה:** ודא שהסוכן עונה עם רשימת ה-VMs (אם קיימים) מהפרויקט. זה מאשר שהמערכת כולה עובדת כמצופה.
+**אופציה א' - דרך ממשק Flowise:**
+- [ ] התחבר ל-Flowise UI
+- [ ] נווט ל-`Tools` → `Custom Tools`
+- [ ] לחץ `+ Add Custom Tool`
+- [ ] העלה את הקובץ `Flowise/custom-tools/list-gcp-vms.json`
+
+**אופציה ב' - דרך משתני סביבה:**
+```bash
+# הוסף ל-cloudbuild.yaml:
+--set-env-vars=TOOL_FUNCTION_EXTERNAL_URL=https://us-central1-lionspace-spoke-prod.cloudfunctions.net/list-vms-function
+```
+
+### 2. צור Chatflow לבדיקה:
+
+- [ ] בממשק Flowise, צור Chatflow חדש
+- [ ] הוסף את הרכיבים:
+  1. **Chat Model** (OpenAI/Anthropic/Gemini)
+  2. **Agent** (ReAct/OpenAI Functions)
+  3. **Tool**: בחר `List GCP VMs`
+  4. **Memory** (אופציונלי)
+
+### 3. בדיקה מקצה לקצה:
+
+- [ ] שאל את הסוכן: **"הצג לי את כל המכונות בפרויקט lionspace-spoke-prod"**
+- [ ] ודא שהסוכן:
+  - קורא ל-Cloud Function דרך ה-Tool
+  - מקבל רשימת VMs
+  - מציג את התוצאות בפורמט קריא
+
+**✅ אימות הצלחה:** הסוכן מציג רשימת VMs עם שם, zone, ו-status
 
 ---
 
