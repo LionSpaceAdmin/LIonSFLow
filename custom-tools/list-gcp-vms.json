@@ -1,0 +1,26 @@
+{
+  "label": "List GCP VMs",
+  "name": "listGCPVMs",
+  "version": 1.0,
+  "description": "List all Virtual Machines in a GCP project via Cloud Function",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzQyODVGNCIgZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4em0tMi0xM2MwLS41NS40NS0xIDEtMXMxIC40NSAxIDF2NmMwIC41NS0uNDUgMS0xIDFzLTEtLjQ1LTEtMVY3em0wIDEwYzAtLjU1LjQ1LTEgMS0xczEgLjQ1IDEgMXYxYzAgLjU1LS40NSAxLTEgMXMtMS0uNDUtMS0xdi0xeiIvPjwvc3ZnPg==",
+  "category": "GCP Tools",
+  "baseClasses": ["Tool"],
+  "inputs": [
+    {
+      "label": "Project ID",
+      "name": "projectId",
+      "type": "string",
+      "placeholder": "lionspace-spoke-prod",
+      "description": "GCP Project ID to query VMs from"
+    },
+    {
+      "label": "Cloud Function URL",
+      "name": "functionUrl",
+      "type": "string",
+      "default": "https://us-central1-lionspace-spoke-prod.cloudfunctions.net/list-vms-function",
+      "description": "Cloud Function endpoint URL"
+    }
+  ],
+  "code": "const axios = require('axios');\n\nclass ListGCPVMs {\n  constructor() {\n    this.name = 'listGCPVMs';\n    this.description = 'List all Virtual Machines in a GCP project';\n  }\n\n  async _call(input, runManager) {\n    try {\n      const { projectId, functionUrl } = this.params;\n      \n      // Call Cloud Function\n      const response = await axios.get(functionUrl, {\n        headers: {\n          'Content-Type': 'application/json'\n        },\n        timeout: 30000\n      });\n\n      if (!response.data || response.data.length === 0) {\n        return `No VMs found in project ${projectId}`;\n      }\n\n      // Format the response\n      const vmList = response.data.map(vm => \n        `- ${vm.name} (${vm.zone}): ${vm.status}`\n      ).join('\\n');\n\n      return `Found ${response.data.length} VM(s) in project ${projectId}:\\n${vmList}`;\n    } catch (error) {\n      console.error('Error calling Cloud Function:', error);\n      return `Error: ${error.message}`;\n    }\n  }\n}\n\nmodule.exports = { nodeClass: ListGCPVMs };"
+}
