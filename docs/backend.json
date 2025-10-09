@@ -1,0 +1,245 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Auron platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "createdAt"
+      ]
+    },
+    "Workflow": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Workflow",
+      "type": "object",
+      "description": "Represents an automation workflow created by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the workflow."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Workflow)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the workflow."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the workflow."
+        },
+        "nodes": {
+          "type": "string",
+          "description": "JSON string representing the nodes of the workflow."
+        },
+        "edges": {
+          "type": "string",
+          "description": "JSON string representing the edges of the workflow."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the workflow was created.",
+          "format": "date-time"
+        },
+        "lastModified": {
+          "type": "string",
+          "description": "Timestamp indicating when the workflow was last modified.",
+          "format": "date-time"
+        },
+        "version": {
+          "type": "number",
+          "description": "Version number of the workflow."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "nodes",
+        "edges",
+        "createdAt",
+        "lastModified",
+        "version"
+      ]
+    },
+    "NodeParameter": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NodeParameter",
+      "type": "object",
+      "description": "Represents a configurable parameter for a node in a workflow.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the node parameter."
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Reference to NodeDefinition. (Relationship: NodeDefinition 1:N NodeParameter)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the parameter."
+        },
+        "value": {
+          "type": "string",
+          "description": "Value of the parameter. Stored as a string to accommodate different data types."
+        }
+      },
+      "required": [
+        "id",
+        "nodeId",
+        "name",
+        "value"
+      ]
+    },
+    "NodeDefinition": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NodeDefinition",
+      "type": "object",
+      "description": "Represents the definition of a node type available in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the node definition."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the node (e.g., 'New Telegram Message', 'Chat with Gemini')."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the node."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the node (e.g., 'Triggers', 'Actions', 'AI & Generative')."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon name for the node from the lucide-react library."
+        },
+        "inputs": {
+          "type": "string",
+          "description": "JSON string representing the inputs of the node."
+        },
+        "outputs": {
+          "type": "string",
+          "description": "JSON string representing the outputs of the node."
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "name",
+        "category",
+        "icon",
+        "inputs",
+        "outputs"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Uses path-based ownership for private user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/workflows/{workflowId}",
+        "definition": {
+          "entityName": "Workflow",
+          "schema": {
+            "$ref": "#/backend/entities/Workflow"
+          },
+          "description": "Stores workflows created by users. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "workflowId",
+              "description": "The unique identifier for the workflow."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/node_definitions/{nodeDefinitionId}",
+        "definition": {
+          "entityName": "NodeDefinition",
+          "schema": {
+            "$ref": "#/backend/entities/NodeDefinition"
+          },
+          "description": "Stores definitions of node types available in the application. These are global and not user-specific.",
+          "params": [
+            {
+              "name": "nodeDefinitionId",
+              "description": "The unique identifier for the node definition."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/node_definitions/{nodeDefinitionId}/parameters/{nodeParameterId}",
+        "definition": {
+          "entityName": "NodeParameter",
+          "schema": {
+            "$ref": "#/backend/entities/NodeParameter"
+          },
+          "description": "Stores configurable parameters for each node definition. These are global and not user-specific.",
+          "params": [
+            {
+              "name": "nodeDefinitionId",
+              "description": "The unique identifier for the node definition."
+            },
+            {
+              "name": "nodeParameterId",
+              "description": "The unique identifier for the node parameter."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, scalability, and ease of debugging, adhering to the principles outlined.  User-owned data is stored under the `/users/{userId}` path to ensure clear ownership. Workflows are stored as subcollections under the user to clearly define the 1:N User:Workflow relationship. NodeDefinitions are stored in a top level collection as they are shared across all users and do not require user specific authorization.\n\nAuthorization Independence: The `Workflow` documents include the `userId` field which is denormalized from the parent `User` document. This ensures that security rules for workflows can be enforced without needing to perform `get()` operations to check user ownership, thus ensuring authorization independence.\n\nQAPs Support: The segregation of data based on ownership (/users/{userId}/workflows/{workflowId}) naturally supports secure list operations. Rules can easily filter workflows based on the `userId` without needing to inspect the contents of each document, as the path itself implies ownership. NodeDefinitions are public and require no authorization checks, which simplifies listing operations."
+  }
+}
