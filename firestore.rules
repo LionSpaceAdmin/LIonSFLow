@@ -1,150 +1,102 @@
 /**
- * @file Firebase Security Rules for LionsFlow Platform
+ * @fileoverview Firestore Security Rules for Auron Platform
  *
- * @core_philosophy This ruleset enforces a strict user-ownership model for user profiles and their associated workflows.
- *   Node definitions and their parameters are globally accessible.
- * @data_structure
- *   - /users/{userId}: Stores user profiles, accessible only by the user themselves.
- *   - /users/{userId}/workflows/{workflowId}: Stores workflows owned by a specific user, accessible only by that user.
- *   - /node_definitions/{nodeDefinitionId}: Stores node definitions, publicly accessible.
- *   - /node_definitions/{nodeDefinitionId}/parameters/{nodeParameterId}: Stores parameters for node definitions, publicly accessible.
- * @key_security_decisions
- *   - User listing is disallowed for privacy.
- *   - Workflows are owned by users and can only be accessed by their respective owners.
- *   - Node definitions and their parameters are globally accessible to simplify application logic.
- * @denormalization_for_authorization
- *   - The `Workflow` documents include the `userId` field, denormalized from the parent `User` document, for authorization independence.
- *     This avoids the need to perform `get()` operations to check user ownership, ensuring faster and more efficient security rules.
- * @structural_segregation
- *   - Private user data (profiles, workflows) is stored under the `/users/{userId}` path.
- *   - Public data (node definitions) is stored in a top-level collection for easy access and management.
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles and workflows,
+ * while providing public read access to node definitions and their parameters.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profiles, accessible only to the owner.
+ * - /users/{userId}/workflows/{workflowId}: Stores workflows created by users, accessible only to the owner.
+ * - /node_definitions/{nodeDefinitionId}: Stores global node definitions, publicly readable.
+ * - /node_definitions/{nodeDefinitionId}/parameters/{nodeParameterId}: Stores node parameters, publicly readable.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own data (profiles and workflows).
+ * - Node definitions and parameters are publicly readable but not writable via the client.  These should be managed via the Firebase Admin SDK.
+ * - Denormalization of userId within the Workflow document allows for efficient and secure workflow access rules.
+ * - Listing operations for workflows is restricted to the owner.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secures user profiles, allowing only the owner to read and write their own profile.
+     * @description Controls access to user profiles.
      * @path /users/{userId}
-     * @allow (create) - User with UID 'user_abc' can create their profile with ID 'user_abc'.
-     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, and delete their profile with ID 'user_abc'.
-     * @deny (create) - User with UID 'user_xyz' cannot create a profile with ID 'user_abc'.
-     * @deny (get, update, delete) - User with UID 'user_xyz' cannot read, update, or delete the profile with ID 'user_abc'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - User with ID 'user123' can create their profile.
+     * @allow (get, update, delete) - User with ID 'user123' can get, update, or delete their own profile.
+     * @deny (create) - User with ID 'user123' cannot create a profile with a different ID ('user456').
+     * @deny (get, update, delete) - User with ID 'user123' cannot get, update, or delete the profile of another user ('user456').
+     * @principle Enforces document ownership for all operations on user profiles.
      */
     match /users/{userId} {
-      // Helper function to check if the user is signed in
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      // Helper function to check if the user is the owner of the document
+      // Function to check if the request is made by the owner of the user document.
       function isOwner(userId) {
-        return request.auth.uid == userId;
+        return request.auth != null && request.auth.uid == userId;
       }
 
-      // Helper function to check if the user is the existing owner of the document
+      // Function to check if the request is made by the owner of an existing user document.
       function isExistingOwner(userId) {
         return isOwner(userId) && resource != null;
       }
 
-      // Allow the user to create their own profile if the userId matches their auth.uid
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-
-      // Allow the user to get their own profile
       allow get: if isOwner(userId);
-
-      // Deny listing all users
-      allow list: if false;
-
-      // Allow the user to update their own profile, enforcing immutability of the id field
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-
-      // Allow the user to delete their own profile
+      allow list: if false; // Listing all users is not permitted.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id; // Immutable id check
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Secures workflows, allowing only the owner to read and write their own workflows.
+     * @description Controls access to workflows owned by a user.
      * @path /users/{userId}/workflows/{workflowId}
-     * @allow (create) - User with UID 'user_abc' can create a workflow under /users/user_abc/workflows/workflow_123.
-     * @allow (get, update, delete) - User with UID 'user_abc' can read, update, and delete their workflow.
-     * @deny (create) - User with UID 'user_xyz' cannot create a workflow under /users/user_abc/workflows/workflow_123.
-     * @deny (get, update, delete) - User with UID 'user_xyz' cannot read, update, or delete the workflow.
-     * @principle Enforces document ownership for all operations and validates relational integrity.
+     * @allow (create) - User with ID 'user123' can create a workflow under their profile.
+     * @allow (get, update, delete) - User with ID 'user123' can get, update, or delete their own workflow.
+     * @deny (create) - User with ID 'user123' cannot create a workflow with a different userId.
+     * @deny (get, update, delete) - User with ID 'user123' cannot get, update, or delete a workflow owned by another user ('user456').
+     * @principle Enforces document ownership for all operations on workflows.
      */
     match /users/{userId}/workflows/{workflowId} {
-      // Helper function to check if the user is signed in
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      // Helper function to check if the user is the owner of the workflow
+      // Function to check if the request is made by the owner of the workflow document.
       function isOwner(userId) {
-        return request.auth.uid == userId;
+        return request.auth != null && request.auth.uid == userId;
       }
 
-      // Helper function to check if the user is the existing owner of the workflow
+      // Function to check if the request is made by the owner of an existing workflow document.
       function isExistingOwner(userId) {
         return isOwner(userId) && resource != null;
       }
 
-      // Allow the user to create a workflow if the userId matches their auth.uid
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-
-      // Allow the user to get their own workflow
       allow get: if isOwner(userId);
-
-      // Allow the owner to list their own workflows
       allow list: if isOwner(userId);
-
-      // Allow the user to update their own workflow, enforcing immutability of the userId field
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-
-      // Allow the user to delete their own workflow
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId; // Immutable userId check
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Allows public read access to node definitions. Write access is not permitted.
+     * @description Controls access to node definitions.
      * @path /node_definitions/{nodeDefinitionId}
-     * @allow (get, list) - Any user can read node definitions.
-     * @deny (create, update, delete) - No user can create, update, or delete node definitions.
-     * @principle Provides public read access for shared data and restricts write access.
+     * @allow (get, list) - Any user can get or list node definitions.
+     * @deny (create, update, delete) - No user can create, update, or delete node definitions via client.
+     * @principle Provides public read access to node definitions while restricting write access.
      */
     match /node_definitions/{nodeDefinitionId} {
-      // Allow anyone to get node definitions
-      allow get, list: if true;
-
-      // Do not allow anyone to create node definitions
-      allow create: if false;
-
-      // Do not allow anyone to update node definitions
-      allow update: if false;
-
-      // Do not allow anyone to delete node definitions
-      allow delete: if false;
+      allow get, list: if true; // Public read access
+      allow create, update, delete: if false; // Only server can modify
     }
 
     /**
-     * @description Allows public read access to node parameters. Write access is not permitted.
+     * @description Controls access to node parameters.
      * @path /node_definitions/{nodeDefinitionId}/parameters/{nodeParameterId}
-     * @allow (get, list) - Any user can read node parameters.
-     * @deny (create, update, delete) - No user can create, update, or delete node parameters.
-     * @principle Provides public read access for shared data and restricts write access.
+     * @allow (get, list) - Any user can get or list node parameters.
+     * @deny (create, update, delete) - No user can create, update, or delete node parameters via client.
+     * @principle Provides public read access to node parameters while restricting write access.
      */
     match /node_definitions/{nodeDefinitionId}/parameters/{nodeParameterId} {
-      // Allow anyone to get node parameters
-      allow get, list: if true;
-
-      // Do not allow anyone to create node parameters
-      allow create: if false;
-
-      // Do not allow anyone to update node parameters
-      allow update: if false;
-
-      // Do not allow anyone to delete node parameters
-      allow delete: if false;
+      allow get, list: if true; // Public read access
+      allow create, update, delete: if false; // Only server can modify
     }
   }
 }
