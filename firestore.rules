@@ -1,49 +1,43 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
+ * @file Firestore Security Rules
+ * @description This ruleset is designed for a single-user application where all data is accessible without authentication.
  *
  * Core Philosophy:
- * This ruleset is in prototyping mode. It prioritizes ease of development and rapid iteration
- * by focusing on authorization while relaxing data validation. All users have read access to all
- * data, but write access is denied.
+ * The ruleset grants open access to all data, reflecting the application's design as a single-user system without authentication.
  *
  * Data Structure:
- * - /workflows/{workflowId}: Stores workflow definitions.
- * - /node_definitions/{nodeDefinitionId}: Stores node definitions.
+ * - Workflows are stored in the `/workflows` collection.
+ * - Node definitions are stored in the `/node_definitions` collection.
  *
  * Key Security Decisions:
- * - Read access is public.
- * - Write access is denied to everyone.
- * - No user-specific data or ownership checks are performed.
- *
- * Note: These rules are NOT suitable for production use. Implement proper
- * authorization and data validation before deploying to a production environment.
+ * - No authentication is required to read or write data.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows public read access to workflow definitions, but denies all writes.
+     * @description Allows anyone to read and write workflows.
      * @path /workflows/{workflowId}
-     * @allow (get, list): Any user can read workflows.
-     * @deny (create, update, delete): No user can create, update, or delete workflows.
-     * @principle Public read, no write access.
+     * @allow (get, list, create, update, delete) Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Open access for single-user application.
      */
     match /workflows/{workflowId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Allows public read access to node definitions, but denies all writes.
+     * @description Allows anyone to read and write node definitions.
      * @path /node_definitions/{nodeDefinitionId}
-     * @allow (get, list): Any user can read node definitions.
-     * @deny (create, update, delete): No user can create, update, or delete node definitions.
-     * @principle Public read, no write access.
+     * @allow (get, list, create, update, delete) Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Open access for single-user application.
      */
     match /node_definitions/{nodeDefinitionId} {
       allow get, list: if true;
-      allow create, update, delete: if false;
+      allow create, update, delete: if true;
     }
   }
 }
