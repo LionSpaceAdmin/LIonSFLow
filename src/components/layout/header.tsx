@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,13 +14,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
 import { runWorkflow } from "@/ai/flows/run-workflow";
-import { Download, Play, Upload, Bot, Database, FilePlus } from "lucide-react";
+import { Download, Play, Upload, Bot, Database, FilePlus, LogOut } from "lucide-react";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useFirestore, useMemoFirebase } from "@/firebase/provider";
 import { collection, addDoc, doc, serverTimestamp } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 export default function Header() {
+  const router = useRouter();
   const { toast } = useToast();
   const { nodes, edges, setWorkflow, setLogs, setLogsPanelOpen, workflowId, setWorkflowId } = useWorkflowStore();
   const firestore = useFirestore();
@@ -137,6 +138,14 @@ export default function Header() {
     }
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    toast({
+      title: 'התנתקת בהצלחה',
+    });
+  };
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 z-10">
       <div className="flex items-center gap-3">
@@ -184,6 +193,14 @@ export default function Header() {
         <Button size="sm" onClick={handleRunWorkflow}>
           <Play className="ml-2 h-4 w-4" />
           הרץ
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLogout}
+        >
+          <LogOut className="ml-2 h-4 w-4" />
+          התנתק
         </Button>
       </div>
     </header>
