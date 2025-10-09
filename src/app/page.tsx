@@ -12,17 +12,17 @@ import LogsPanel from '@/components/workflow/logs-panel';
 export default function AuronHomePage() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-background text-foreground">
-      <ReactFlowProvider>
         <Header />
         <div className="flex flex-1 overflow-hidden">
           <ConfigPanel />
           <main className="flex-1 h-full relative">
-            <MainCanvas />
+            <ReactFlowProvider>
+              <MainCanvas />
+            </ReactFlowProvider>
           </main>
           <NodePalette />
           <LogsPanel />
         </div>
-      </ReactFlowProvider>
     </div>
   );
 }
