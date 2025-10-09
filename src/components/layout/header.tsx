@@ -41,6 +41,26 @@ export default function Header() {
     }
   };
 
+  const handleSaveWorkflow = () => {
+    const workflowData = {
+      nodes,
+      edges,
+    };
+    const dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(workflowData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "workflow.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    toast({
+      title: "התהליך נשמר",
+      description: "קובץ תהליך העבודה הורד למחשבך.",
+    });
+  };
+
   const handlePlaceholderClick = (feature: string) => {
     toast({
       title: "תכונה זו אינה מיושמת",
@@ -68,7 +88,7 @@ export default function Header() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handlePlaceholderClick("שמירת תהליך עבודה")}
+          onClick={handleSaveWorkflow}
         >
           <Download className="ml-2 h-4 w-4" />
           שמור
