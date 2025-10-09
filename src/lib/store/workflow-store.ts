@@ -11,6 +11,7 @@ import {
   OnConnect,
   applyNodeChanges,
   applyEdgeChanges,
+  useReactFlow,
 } from 'reactflow';
 import { AllNodeDefinitions } from '@/lib/node-definitions';
 
@@ -24,6 +25,7 @@ type WorkflowState = {
   addNode: (node: Node) => void;
   setSelectedNodeId: (nodeId: string | null) => void;
   updateNodeConfig: (nodeId: string, data: any) => void;
+  setWorkflow: (nodes: Node[], edges: Edge[]) => void;
 };
 
 const initialNodes: Node[] = [
@@ -52,6 +54,14 @@ initialNodes.forEach(node => {
     const def = AllNodeDefinitions.find(d => d.name === node.data.label);
     if(def) {
         node.type = def.type;
+        // Populate default parameters when initializing
+        const defaultParams = def.parameters.reduce((acc, param) => {
+            if (param.defaultValue !== undefined) {
+              acc[param.name] = param.defaultValue;
+            }
+            return acc;
+        }, {} as Record<string, any>);
+        node.data = { ...node.data, ...defaultParams };
     }
 });
 // Re-map to custom type wrapper
@@ -91,7 +101,9 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     if (def) {
         node.type = def.type;
         const defaultParams = def.parameters.reduce((acc, param) => {
-            acc[param.name] = param.defaultValue;
+            if (param.defaultValue !== undefined) {
+                acc[param.name] = param.defaultValue;
+            }
             return acc;
         }, {} as Record<string, any>);
         node.data = { ...node.data, ...defaultParams };
@@ -111,10 +123,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({
       nodes: get().nodes.map((node) => {
         if (node.id === nodeId) {
-          return { ...node, data: { ...node.data, ...data } };
+          // Make sure to keep the label
+          const new_data = { ...node.data, ...data };
+          return { ...node, data: new_data };
         }
         return node;
       }),
     });
+  },
+  
+  setWorkflow: (nodes: Node[], edges: Edge[]) => {
+    set({ nodes, edges, selectedNodeId: null });
   },
 }));

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,8 @@ import { Download, Play, Upload, Bot } from "lucide-react";
 
 export default function Header() {
   const { toast } = useToast();
-  const { nodes, edges } = useWorkflowStore();
+  const { nodes, edges, setWorkflow } = useWorkflowStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRunWorkflow = async () => {
     toast({
@@ -42,6 +44,15 @@ export default function Header() {
   };
 
   const handleSaveWorkflow = () => {
+    if (nodes.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "תהליך עבודה ריק",
+        description: "לא ניתן לשמור תהליך עבודה ריק.",
+      });
+      return;
+    }
+
     const workflowData = {
       nodes,
       edges,
@@ -61,6 +72,45 @@ export default function Header() {
     });
   };
 
+  const handleLoadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result;
+        if (typeof content === 'string') {
+          const { nodes: loadedNodes, edges: loadedEdges } = JSON.parse(content);
+          if (Array.isArray(loadedNodes) && Array.isArray(loadedEdges)) {
+             setWorkflow(loadedNodes, loadedEdges);
+             toast({
+              title: "התהליך נטען בהצלחה",
+              description: "תהליך העבודה מהקובץ מוצג כעת על הקנבס.",
+            });
+          } else {
+            throw new Error("Invalid file structure");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load workflow:", error);
+        toast({
+          variant: "destructive",
+          title: "שגיאה בטעינת הקובץ",
+          description: "הקובץ אינו קובץ תהליך עבודה תקין.",
+        });
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input to allow loading the same file again
+    event.target.value = '';
+  };
+
+
   const handlePlaceholderClick = (feature: string) => {
     toast({
       title: "תכונה זו אינה מיושמת",
@@ -77,10 +127,17 @@ export default function Header() {
         </h1>
       </div>
       <div className="flex items-center gap-2">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          className="hidden"
+          accept="application/json"
+        />
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handlePlaceholderClick("טעינת תהליך עבודה")}
+          onClick={handleLoadClick}
         >
           <Upload className="ml-2 h-4 w-4" />
           טען
@@ -107,11 +164,11 @@ export default function Header() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>פרופיל</DropdownMenuItem>
-            <DropdownMenuItem>חיובים</DropdownMenuItem>
-            <DropdownMenuItem>הגדרות</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePlaceholderClick("פרופיל")}>פרופיל</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePlaceholderClick("חיובים")}>חיובים</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePlaceholderClick("הגדרות")}>הגדרות</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>התנתק</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handlePlaceholderClick("התנתקות")}>התנתק</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
