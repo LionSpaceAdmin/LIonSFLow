@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Twitter,
   FileEdit,
+  Fingerprint,
 } from 'lucide-react';
 
 export const AllNodeDefinitions: NodeDefinition[] = [
@@ -226,5 +227,20 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     ],
     outputs: [],
     parameters: [],
+  },
+
+  // GCP
+  {
+    id: 'gcp-get-iam-policy',
+    type: 'gcp-get-iam-policy',
+    name: 'קבל מדיניות IAM של GCP',
+    category: 'GCP',
+    icon: Fingerprint,
+    description: 'מאחזר את מדיניות ה-IAM עבור משאב GCP נתון.',
+    inputs: [{ name: 'resourceName', label: 'שם משאב' }],
+    outputs: [{ name: 'policy', label: 'מדיניות (JSON)' }],
+    parameters: [
+      { name: 'resourceName', label: 'שם משאב מלא', type: 'string', description: 'לדוגמה: //cloudresourcemanager.googleapis.com/projects/my-project' },
+    ],
   },
 ];

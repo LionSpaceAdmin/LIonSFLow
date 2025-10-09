@@ -7,7 +7,7 @@ export interface NodeParameter {
   description?: string;
 }
 
-export type NodeCategory = 'טריגרים' | 'פעולות' | 'עיבוד' | 'לוגיקה' | 'בינה מלאכותית וגנרטיבית';
+export type NodeCategory = 'טריגרים' | 'פעולות' | 'עיבוד' | 'לוגיקה' | 'בינה מלאכותית וגנרטיבית' | 'GCP';
 
 
 export interface NodeDefinition {
