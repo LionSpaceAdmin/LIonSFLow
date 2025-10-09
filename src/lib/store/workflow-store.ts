@@ -19,6 +19,8 @@ type WorkflowState = {
   nodes: Node[];
   edges: Edge[];
   selectedNodeId: string | null;
+  logs: string[];
+  isLogsPanelOpen: boolean;
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
@@ -26,6 +28,8 @@ type WorkflowState = {
   setSelectedNodeId: (nodeId: string | null) => void;
   updateNodeConfig: (nodeId: string, data: any) => void;
   setWorkflow: (nodes: Node[], edges: Edge[]) => void;
+  setLogs: (logs: string[]) => void;
+  setLogsPanelOpen: (isOpen: boolean) => void;
 };
 
 const initialNodes: Node[] = [
@@ -77,6 +81,8 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
   selectedNodeId: null,
+  logs: [],
+  isLogsPanelOpen: false,
 
   onNodesChange: (changes: NodeChange[]) => {
     set({
@@ -134,5 +140,13 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   
   setWorkflow: (nodes: Node[], edges: Edge[]) => {
     set({ nodes, edges, selectedNodeId: null });
+  },
+
+  setLogs: (logs: string[]) => {
+    set({ logs });
+  },
+
+  setLogsPanelOpen: (isOpen: boolean) => {
+    set({ isLogsPanelOpen: isOpen });
   },
 }));

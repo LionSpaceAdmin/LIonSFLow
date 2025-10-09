@@ -18,7 +18,7 @@ import { Download, Play, Upload, Bot } from "lucide-react";
 
 export default function Header() {
   const { toast } = useToast();
-  const { nodes, edges, setWorkflow } = useWorkflowStore();
+  const { nodes, edges, setWorkflow, setLogs, setLogsPanelOpen } = useWorkflowStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRunWorkflow = async () => {
@@ -29,16 +29,19 @@ export default function Header() {
 
     try {
       const result = await runWorkflow({ nodes, edges });
+      setLogs(result.logs);
+      setLogsPanelOpen(true);
       toast({
         title: "התהליך הסתיים",
-        description: result.executionResult,
+        description: "הצגת תוצאות ויומני רישום.",
       });
     } catch (error) {
       console.error("Workflow execution failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "אירעה שגיאה בלתי צפויה.";
       toast({
         variant: "destructive",
         title: "שגיאה בהרצת התהליך",
-        description: "אירעה שגיאה בלתי צפויה. בדוק את הלוגים לפרטים נוספים.",
+        description: errorMessage,
       });
     }
   };

@@ -7,6 +7,7 @@ import Header from '@/components/layout/header';
 import NodePalette from '@/components/workflow/node-palette';
 import MainCanvas from '@/components/workflow/main-canvas';
 import ConfigPanel from '@/components/workflow/config-panel';
+import LogsPanel from '@/components/workflow/logs-panel';
 
 export default function AuronHomePage() {
   return (
@@ -19,6 +20,7 @@ export default function AuronHomePage() {
             <MainCanvas />
           </main>
           <NodePalette />
+          <LogsPanel />
         </div>
       </ReactFlowProvider>
     </div>

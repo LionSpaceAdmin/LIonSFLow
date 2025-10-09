@@ -33,6 +33,7 @@ const RunWorkflowOutputSchema = z.object({
   executionResult: z.string(),
   nodeCount: z.number(),
   edgeCount: z.number(),
+  logs: z.array(z.string()),
 });
 export type RunWorkflowOutput = z.infer<typeof RunWorkflowOutputSchema>;
 
@@ -50,19 +51,28 @@ const runWorkflowFlow = ai.defineFlow(
   },
   async (input) => {
     const { nodes, edges } = input;
-    
+    const logs: string[] = [];
+
+    logs.push('Workflow execution started.');
+    logs.push(`Processing ${nodes.length} nodes and ${edges.length} edges.`);
+
     // This is a placeholder for the actual workflow execution logic.
     // In the future, this will interpret the graph and run the nodes in order.
-    console.log('Workflow execution started.');
-    console.log('Nodes:', nodes.map(n => n.id));
-    console.log('Edges:', edges.map(e => `${e.source} -> ${e.target}`));
+    for (const node of nodes) {
+      logs.push(`Executing node ${node.id} of type ${node.type}.`);
+      // Simulate some work
+      await new Promise(resolve => setTimeout(resolve, 100));
+      logs.push(`Node ${node.id} executed successfully.`);
+    }
 
     const result = `התהליך הורץ בהצלחה עם ${nodes.length} צמתים ו-${edges.length} חיבורים.`;
-    
+    logs.push('Workflow execution finished.');
+
     return {
       executionResult: result,
       nodeCount: nodes.length,
       edgeCount: edges.length,
+      logs: logs,
     };
   }
 );
