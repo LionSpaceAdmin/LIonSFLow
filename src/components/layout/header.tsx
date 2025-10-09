@@ -15,9 +15,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
 import { runWorkflow } from "@/ai/flows/run-workflow";
-import { Download, Play, Upload, Bot, Database, FilePlus, LogOut } from "lucide-react";
+import { Download, Play, Upload, Bot, Database, FilePlus, LogOut, Loader2 } from "lucide-react";
 import { useFirestore } from "@/firebase/provider";
-import { collection, addDoc, doc, serverTimestamp, getDocs } from "firebase/firestore";
+import { collection, addDoc, doc, serverTimestamp, getDocs, onSnapshot } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type WorkflowDoc = {
@@ -34,13 +34,17 @@ export default function Header() {
   const firestore = useFirestore();
   
   const [workflows, setWorkflows] = useState<WorkflowDoc[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingWorkflows, setIsFetchingWorkflows] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
 
   const handleRunWorkflow = async () => {
+    setIsRunning(true);
     toast({
       title: "מריץ תהליך עבודה...",
-      description: "אנא המתן.",
+      description: "אנא המתן, הפעולה מתבצעת בשרת.",
     });
 
     try {
@@ -59,6 +63,8 @@ export default function Header() {
         title: "שגיאה בהרצת התהליך",
         description: errorMessage,
       });
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -84,6 +90,7 @@ export default function Header() {
     const workflowName = prompt("אנא הכנס שם לתהליך העבודה:", "תהליך עבודה חדש");
     if (!workflowName) return;
 
+    setIsSaving(true);
     const workflowData = {
       name: workflowName,
       nodes,
@@ -121,6 +128,8 @@ export default function Header() {
             title: "שגיאה בשמירת התהליך",
             description: errorMessage,
         });
+    } finally {
+        setIsSaving(false);
     }
   };
 
@@ -143,7 +152,7 @@ export default function Header() {
 
   const fetchWorkflows = async () => {
     if (!firestore) return;
-    setIsLoading(true);
+    setIsFetchingWorkflows(true);
     try {
       const querySnapshot = await getDocs(collection(firestore, "workflows"));
       const workflowsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WorkflowDoc));
@@ -153,19 +162,21 @@ export default function Header() {
        toast({
         variant: "destructive",
         title: "שגיאה בטעינת תהליכים",
-        description: "לא ניתן היה להביא את רשימת תהליכי העבודה מ-Firestore.",
+        description: "לא ניתן היה להביא את רשימת תהליכי העבודה מ-Firestore. בדוק את חוקי האבטחה.",
       });
     } finally {
-      setIsLoading(false);
+      setIsFetchingWorkflows(false);
     }
   };
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
     toast({
       title: 'התנתקת בהצלחה',
     });
+    setIsLoggingOut(false);
   };
 
   return (
@@ -187,16 +198,16 @@ export default function Header() {
         </Button>
         <DropdownMenu onOpenChange={(open) => open && fetchWorkflows()}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Database className="ml-2 h-4 w-4" />
+            <Button variant="outline" size="sm" disabled={isFetchingWorkflows}>
+              {isFetchingWorkflows ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Database className="ml-2 h-4 w-4" />}
               טען
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">
             <DropdownMenuLabel>טען תהליך עבודה מ-Firestore</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {isLoading && <DropdownMenuItem disabled>טוען רשימה...</DropdownMenuItem>}
-            {!isLoading && workflows?.length === 0 && <DropdownMenuItem disabled>לא נמצאו תהליכי עבודה.</DropdownMenuItem>}
+            {isFetchingWorkflows && <DropdownMenuItem disabled>טוען רשימה...</DropdownMenuItem>}
+            {!isFetchingWorkflows && workflows?.length === 0 && <DropdownMenuItem disabled>לא נמצאו תהליכי עבודה.</DropdownMenuItem>}
             {workflows?.map((wf) => (
               <DropdownMenuItem key={wf.id} onClick={() => handleLoadWorkflow(wf)}>
                 {wf.name}
@@ -208,20 +219,22 @@ export default function Header() {
           variant="outline"
           size="sm"
           onClick={handleSaveWorkflow}
+          disabled={isSaving}
         >
-          <Download className="ml-2 h-4 w-4" />
+          {isSaving ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Download className="ml-2 h-4 w-4" />}
           שמור
         </Button>
-        <Button size="sm" onClick={handleRunWorkflow}>
-          <Play className="ml-2 h-4 w-4" />
+        <Button size="sm" onClick={handleRunWorkflow} disabled={isRunning}>
+          {isRunning ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Play className="ml-2 h-4 w-4" />}
           הרץ
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleLogout}
+          disabled={isLoggingOut}
         >
-          <LogOut className="ml-2 h-4 w-4" />
+          {isLoggingOut ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <LogOut className="ml-2 h-4 w-4" />}
           התנתק
         </Button>
       </div>

@@ -15,6 +15,8 @@ import {
   Twitter,
   FileEdit,
   Fingerprint,
+  List,
+  Power,
 } from 'lucide-react';
 
 export const AllNodeDefinitions: NodeDefinition[] = [
@@ -233,7 +235,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
   {
     id: 'gcp-get-iam-policy',
     type: 'gcp-get-iam-policy',
-    name: 'קבל מדיניות IAM של GCP',
+    name: 'קבל מדיניות IAM',
     category: 'GCP',
     icon: Fingerprint,
     description: 'מאחזר את מדיניות ה-IAM עבור משאב GCP נתון.',
@@ -243,6 +245,37 @@ export const AllNodeDefinitions: NodeDefinition[] = [
       { name: 'resourceName', label: 'שם משאב מלא', type: 'string', description: 'לדוגמה: //cloudresourcemanager.googleapis.com/projects/my-project' },
     ],
   },
+  {
+    id: 'gcp-list-firewall-rules',
+    type: 'gcp-list-firewall-rules',
+    name: 'הצג חוקי Firewall',
+    category: 'GCP',
+    icon: List,
+    description: 'מציג את רשימת חוקי חומת האש עבור פרויקט GCP.',
+    inputs: [{ name: 'projectId', label: 'מזהה פרויקט', type: 'string' }],
+    outputs: [{ name: 'rules', label: 'חוקים (JSON)', type: 'string' }],
+    parameters: [
+        { name: 'projectId', label: 'מזהה פרויקט GCP', type: 'string' },
+    ],
+  },
+  {
+    id: 'gcp-toggle-vm-instance',
+    type: 'gcp-toggle-vm-instance',
+    name: 'הפעל/כבה מכונה וירטואלית',
+    category: 'GCP',
+    icon: Power,
+    description: 'מכבה או מפעיל מכונה וירטואלית ב-Compute Engine.',
+    inputs: [
+        { name: 'projectId', label: 'מזהה פרויקט', type: 'string' },
+        { name: 'zone', label: 'אזור (Zone)', type: 'string' },
+        { name: 'instanceName', label: 'שם מכונה', type: 'string' },
+    ],
+    outputs: [{ name: 'status', label: 'סטטוס', type: 'string' }],
+    parameters: [
+        { name: 'projectId', label: 'מזהה פרויקט GCP', type: 'string' },
+        { name: 'zone', label: 'אזור (Zone)', type: 'string', defaultValue: 'us-central1-a' },
+        { name: 'instanceName', label: 'שם המכונה', type: 'string' },
+        { name: 'action', label: 'פעולה', type: 'select', defaultValue: 'start', options: [{ value: 'start', label: 'הפעל' }, { value: 'stop', label: 'כבה' }] },
+    ],
+  },
 ];
-
-    

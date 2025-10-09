@@ -8,9 +8,6 @@ import { AllNodeDefinitions } from "@/lib/node-definitions";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
 
 const CustomNode = ({ id, data, selected, type: nodeType }: NodeProps) => {
-  // The 'type' from NodeProps is the one registered in ReactFlow, which is 'custom'.
-  // The actual functional type of our node is stored in the node's data.
-  // For backward compatibility or nodes just added, we check node.type as well.
   const { nodes } = useWorkflowStore();
   const node = nodes.find(n => n.id === id);
   const functionalType = node?.type || nodeType;
@@ -35,49 +32,47 @@ const CustomNode = ({ id, data, selected, type: nodeType }: NodeProps) => {
   return (
     <Card
       className={cn(
-        "w-64 border-2 shadow-md hover:shadow-lg transition-shadow duration-200",
-        selected ? "border-primary shadow-xl" : "border-card"
+        "w-64 border-2 shadow-lg hover:shadow-xl transition-shadow duration-200 rounded-xl",
+        selected ? "border-primary ring-2 ring-primary ring-offset-2" : "border-card"
       )}
     >
       <CardHeader className={cn("p-2 rounded-t-lg", categoryColors[category] || 'bg-gray-500')}>
         <div className="flex items-center gap-2">
-          <div className="bg-white/20 p-1 rounded">
+          <div className="bg-white/20 p-1 rounded-md">
              <Icon className="h-5 w-5 text-white" />
           </div>
           <p className="text-sm font-bold text-white font-headline truncate">{data.label || name}</p>
         </div>
       </CardHeader>
       <CardContent className="p-3 bg-card rounded-b-lg">
-        <div className="text-xs text-muted-foreground mb-2">
+        <div className="text-xs text-muted-foreground mb-2 truncate">
             {nodeDefinition.description}
         </div>
-        <div className="flex justify-between">
+        <div className="relative flex justify-between items-center min-h-[20px]">
           {/* Inputs */}
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col items-start">
             {inputs.map((input, index) => (
-              <div key={input.name} className="flex items-center gap-2">
+              <div key={input.name} className="flex items-center gap-2 relative">
                 <Handle
                   type="target"
                   position={Position.Left}
                   id={input.name}
-                  style={{ top: `calc(50% + ${index * 20}px - ${(inputs.length -1) * 10}px)` }}
-                  className="!w-3 !h-3"
+                  className="!w-3 !h-3 !bg-blue-400"
                 />
                 <span className="text-xs">{input.label}</span>
               </div>
             ))}
           </div>
           {/* Outputs */}
-          <div className="space-y-2 text-right">
+          <div className="space-y-2 flex flex-col items-end">
             {outputs.map((output, index) => (
-              <div key={output.name} className="flex items-center gap-2 justify-end">
+              <div key={output.name} className="flex items-center gap-2 justify-end relative">
                 <span className="text-xs">{output.label}</span>
                 <Handle
                   type="source"
                   position={Position.Right}
                   id={output.name}
-                   style={{ top: `calc(50% + ${index * 20}px - ${(outputs.length -1) * 10}px)` }}
-                  className="!w-3 !h-3"
+                  className="!w-3 !h-3 !bg-green-400"
                 />
               </div>
             ))}
@@ -89,5 +84,3 @@ const CustomNode = ({ id, data, selected, type: nodeType }: NodeProps) => {
 };
 
 export default memo(CustomNode);
-
-    

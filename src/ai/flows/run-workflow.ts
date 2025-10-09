@@ -13,10 +13,14 @@ import { AllNodeDefinitions } from '@/lib/node-definitions';
 
 // Import executable node functions
 import { getGcpIamPolicy } from './gcp-get-iam-policy';
+import { listGcpFirewallRules } from './gcp-list-firewall-rules';
+import { toggleGcpVmInstance } from './gcp-toggle-vm-instance';
 
 // Map node types to their executable functions
 const nodeFunctionRegistry: Record<string, (input: any) => Promise<any>> = {
   'gcp-get-iam-policy': getGcpIamPolicy,
+  'gcp-list-firewall-rules': listGcpFirewallRules,
+  'gcp-toggle-vm-instance': toggleGcpVmInstance,
   // Add other executable node functions here as they are created
 };
 
