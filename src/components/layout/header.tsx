@@ -11,10 +11,35 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { useWorkflowStore } from "@/lib/store/workflow-store";
+import { runWorkflow } from "@/ai/flows/run-workflow";
 import { Download, Play, Upload, Bot } from "lucide-react";
 
 export default function Header() {
   const { toast } = useToast();
+  const { nodes, edges } = useWorkflowStore();
+
+  const handleRunWorkflow = async () => {
+    toast({
+      title: "מריץ תהליך עבודה...",
+      description: "אנא המתן.",
+    });
+
+    try {
+      const result = await runWorkflow({ nodes, edges });
+      toast({
+        title: "התהליך הסתיים",
+        description: result.executionResult,
+      });
+    } catch (error) {
+      console.error("Workflow execution failed:", error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה בהרצת התהליך",
+        description: "אירעה שגיאה בלתי צפויה. בדוק את הלוגים לפרטים נוספים.",
+      });
+    }
+  };
 
   const handlePlaceholderClick = (feature: string) => {
     toast({
@@ -48,7 +73,7 @@ export default function Header() {
           <Download className="ml-2 h-4 w-4" />
           שמור
         </Button>
-        <Button size="sm" onClick={() => handlePlaceholderClick("הרצת תהליך עבודה")}>
+        <Button size="sm" onClick={handleRunWorkflow}>
           <Play className="ml-2 h-4 w-4" />
           הרץ
         </Button>
