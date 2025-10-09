@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
@@ -15,23 +16,25 @@ import { useToast } from "@/hooks/use-toast";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
 import { runWorkflow } from "@/ai/flows/run-workflow";
 import { Download, Play, Upload, Bot, Database, FilePlus, LogOut } from "lucide-react";
-import { useCollection } from "@/firebase/firestore/use-collection";
-import { useFirestore, useMemoFirebase } from "@/firebase/provider";
-import { collection, addDoc, doc, serverTimestamp } from "firebase/firestore";
+import { useFirestore } from "@/firebase/provider";
+import { collection, addDoc, doc, serverTimestamp, getDocs } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+
+type WorkflowDoc = {
+  id: string;
+  name: string;
+  nodes: any[];
+  edges: any[];
+};
 
 export default function Header() {
   const router = useRouter();
   const { toast } = useToast();
   const { nodes, edges, setWorkflow, setLogs, setLogsPanelOpen, workflowId, setWorkflowId } = useWorkflowStore();
   const firestore = useFirestore();
-
-  const workflowsCollection = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'workflows');
-  }, [firestore]);
-
-  const { data: workflows, isLoading } = useCollection(workflowsCollection);
+  
+  const [workflows, setWorkflows] = useState<WorkflowDoc[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
 
   const handleRunWorkflow = async () => {
@@ -138,6 +141,25 @@ export default function Header() {
     }
   };
 
+  const fetchWorkflows = async () => {
+    if (!firestore) return;
+    setIsLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(firestore, "workflows"));
+      const workflowsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as WorkflowDoc));
+      setWorkflows(workflowsData);
+    } catch (error) {
+      console.error("Error fetching workflows: ", error);
+       toast({
+        variant: "destructive",
+        title: "שגיאה בטעינת תהליכים",
+        description: "לא ניתן היה להביא את רשימת תהליכי העבודה מ-Firestore.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
@@ -163,7 +185,7 @@ export default function Header() {
           <FilePlus className="ml-2 h-4 w-4" />
           חדש
         </Button>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={(open) => open && fetchWorkflows()}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
               <Database className="ml-2 h-4 w-4" />
