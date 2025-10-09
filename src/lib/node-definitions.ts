@@ -27,7 +27,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     icon: Send,
     description: 'מתחיל את התהליך כאשר מופיעה הודעה חדשה בערוץ או קבוצת טלגרם ספציפית.',
     inputs: [],
-    outputs: [{ name: 'message', label: 'הודעה' }],
+    outputs: [{ name: 'message', label: 'הודעה', type: 'string' }],
     parameters: [
       { name: 'channelId', label: 'מזהה ערוץ/קבוצה', type: 'string', description: 'המזהה של ערוץ או קבוצת הטלגרם למעקב.' },
     ],
@@ -40,7 +40,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     icon: AtSign,
     description: 'מתחיל כאשר ידית ה-X (טוויטר) שלך מוזכרת בציוץ.',
     inputs: [],
-    outputs: [{ name: 'tweet', label: 'ציוץ' }],
+    outputs: [{ name: 'tweet', label: 'ציוץ', type: 'object' }],
     parameters: [
        { name: 'handle', label: 'ידית X', type: 'string', description: 'ידית ה-X שלך (לדוגמה, @username).' },
     ],
@@ -53,7 +53,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     icon: Instagram,
     description: 'מתחיל כאשר אתה מפרסם מדיה חדשה לחשבון האינסטגרם שלך.',
     inputs: [],
-    outputs: [{ name: 'post', label: 'פוסט' }],
+    outputs: [{ name: 'post', label: 'פוסט', type: 'object' }],
     parameters: [],
   },
   {
@@ -64,7 +64,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     icon: MessageSquare,
     description: 'מאזין לערוץ ספציפי בשרת דיסקורד.',
     inputs: [],
-    outputs: [{ name: 'message', label: 'הודעה' }],
+    outputs: [{ name: 'message', label: 'הודעה', type: 'object' }],
     parameters: [
       { name: 'serverId', label: 'מזהה שרת', type: 'string' },
       { name: 'channelId', label: 'מזהה ערוץ', type: 'string' },
@@ -78,7 +78,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     icon: Clock,
     description: 'מפעיל את התהליך בזמן או במרווח זמן ספציפי (למשל, כל יום ב-9 בבוקר).',
     inputs: [],
-    outputs: [{ name: 'timestamp', label: 'חותמת זמן' }],
+    outputs: [{ name: 'timestamp', label: 'חותמת זמן', type: 'string' }],
     parameters: [
       { name: 'cron', label: 'ביטוי Cron', type: 'string', defaultValue: '0 9 * * *' },
     ],
@@ -92,8 +92,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'בינה מלאכותית וגנרטיבית',
     icon: BrainCircuit,
     description: 'השתמש ב-Google Gemini לחשיבה מתקדמת, יצירת טקסט וסיכום.',
-    inputs: [{ name: 'prompt', label: 'הנחיה' }],
-    outputs: [{ name: 'result', label: 'תוצאה' }],
+    inputs: [{ name: 'prompt', label: 'הנחיה', type: 'string' }],
+    outputs: [{ name: 'result', label: 'תוצאה', type: 'string' }],
     parameters: [
       { name: 'model', label: 'מודל', type: 'select', defaultValue: 'gemini-2.5-flash', options: [{value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash'}]},
       { name: 'prompt', label: 'הנחיית מערכת', type: 'textarea', description: 'הוראות ל-AI למלא.' },
@@ -106,8 +106,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'בינה מלאכותית וגנרטיבית',
     icon: Image,
     description: 'יוצר תמונה מהנחיית טקסט באמצעות Imagen 2 של גוגל.',
-    inputs: [{ name: 'prompt', label: 'הנחיה' }],
-    outputs: [{ name: 'imageUrl', label: 'כתובת תמונה' }],
+    inputs: [{ name: 'prompt', label: 'הנחיה', type: 'string' }],
+    outputs: [{ name: 'imageUrl', label: 'כתובת תמונה', type: 'string' }],
     parameters: [],
   },
   
@@ -119,8 +119,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'עיבוד',
     icon: Languages,
     description: 'מתרגם טקסט משפה אחת לאחרת.',
-    inputs: [{ name: 'text', label: 'טקסט' }],
-    outputs: [{ name: 'translatedText', label: 'טקסט מתורגם' }],
+    inputs: [{ name: 'text', label: 'טקסט', type: 'string' }],
+    outputs: [{ name: 'translatedText', label: 'טקסט מתורגם', type: 'string' }],
     parameters: [
       { name: 'targetLanguage', label: 'שפת יעד', type: 'string', defaultValue: 'he', description: 'למשל, "he" לעברית, "en" לאנגלית' },
     ],
@@ -132,8 +132,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'עיבוד',
     icon: Smile,
     description: 'קובע אם הטקסט חיובי, שלילי או ניטרלי.',
-    inputs: [{ name: 'text', label: 'טקסט' }],
-    outputs: [{ name: 'sentiment', label: 'סנטימנט' }],
+    inputs: [{ name: 'text', label: 'טקסט', type: 'string' }],
+    outputs: [{ name: 'sentiment', label: 'סנטימנט', type: 'string' }],
     parameters: [],
   },
   {
@@ -143,8 +143,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'עיבוד',
     icon: Tags,
     description: 'מוציא שמות, קישורים, האשטאגים וכו\', מתוך קטע טקסט.',
-    inputs: [{ name: 'text', label: 'טקסט' }],
-    outputs: [{ name: 'entities', label: 'ישויות' }],
+    inputs: [{ name: 'text', label: 'טקסט', type: 'string' }],
+    outputs: [{ name: 'entities', label: 'ישויות', type: 'object' }],
     parameters: [],
   },
 
@@ -156,8 +156,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'לוגיקה',
     icon: Filter,
     description: 'ממשיך את התהליך רק אם מתקיימים תנאים מסוימים.',
-    inputs: [{ name: 'input', label: 'קלט' }],
-    outputs: [{ name: 'passed', label: 'עבר' }],
+    inputs: [{ name: 'input', label: 'קלט', type: 'any' }],
+    outputs: [{ name: 'passed', label: 'עבר', type: 'any' }],
     parameters: [
       { name: 'condition', label: 'תנאי', type: 'string', description: 'למשל, input.includes("חשוב")' },
     ],
@@ -169,8 +169,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'לוגיקה',
     icon: ShieldCheck,
     description: 'עוצר את התהליך ומציב תוכן בתור לאישור ידני.',
-    inputs: [{ name: 'content', label: 'תוכן' }],
-    outputs: [{ name: 'approvedContent', label: 'תוכן מאושר' }],
+    inputs: [{ name: 'content', label: 'תוכן', type: 'any' }],
+    outputs: [{ name: 'approvedContent', label: 'תוכן מאושר', type: 'any' }],
     parameters: [],
   },
   
@@ -182,7 +182,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'פעולות',
     icon: Send,
     description: 'שולח הודעה לערוץ או קבוצת טלגרם.',
-    inputs: [{ name: 'message', label: 'הודעה' }],
+    inputs: [{ name: 'message', label: 'הודעה', type: 'string' }],
     outputs: [],
     parameters: [
       { name: 'channelId', label: 'מזהה ערוץ/קבוצה', type: 'string' },
@@ -195,7 +195,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'פעולות',
     icon: Twitter,
     description: 'מפרסם ציוץ או תגובה.',
-    inputs: [{ name: 'text', label: 'טקסט' }],
+    inputs: [{ name: 'text', label: 'טקסט', type: 'string' }],
     outputs: [],
     parameters: [
       { name: 'replyToId', label: 'בתגובה למזהה ציוץ (אופציונלי)', type: 'string' },
@@ -208,7 +208,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'פעולות',
     icon: MessageSquare,
     description: 'שולח הודעה לערוץ דיסקורד.',
-    inputs: [{ name: 'message', label: 'הודעה' }],
+    inputs: [{ name: 'message', label: 'הודעה', type: 'string' }],
     outputs: [],
     parameters: [
       { name: 'channelId', label: 'מזהה ערוץ', type: 'string' },
@@ -222,8 +222,8 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     icon: FileEdit,
     description: 'משנה את הכיתוב של פוסט קיים באינסטגרם.',
     inputs: [
-        { name: 'postId', label: 'מזהה פוסט' },
-        { name: 'newCaption', label: 'כיתוב חדש' }
+        { name: 'postId', label: 'מזהה פוסט', type: 'string' },
+        { name: 'newCaption', label: 'כיתוב חדש', type: 'string' }
     ],
     outputs: [],
     parameters: [],
@@ -237,10 +237,12 @@ export const AllNodeDefinitions: NodeDefinition[] = [
     category: 'GCP',
     icon: Fingerprint,
     description: 'מאחזר את מדיניות ה-IAM עבור משאב GCP נתון.',
-    inputs: [{ name: 'resourceName', label: 'שם משאב' }],
-    outputs: [{ name: 'policy', label: 'מדיניות (JSON)' }],
+    inputs: [{ name: 'resourceName', label: 'שם משאב', type: 'string' }],
+    outputs: [{ name: 'policy', label: 'מדיניות (JSON)', type: 'string' }],
     parameters: [
       { name: 'resourceName', label: 'שם משאב מלא', type: 'string', description: 'לדוגמה: //cloudresourcemanager.googleapis.com/projects/my-project' },
     ],
   },
 ];
+
+    

@@ -17,7 +17,9 @@ export interface NodeDefinition {
   category: NodeCategory;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
-  inputs: { name: string; label: string }[];
-  outputs: { name: string; label: string }[];
+  inputs: { name: string; label: string, type: string }[];
+  outputs: { name: string; label: string, type: string }[];
   parameters: NodeParameter[];
 }
+
+    

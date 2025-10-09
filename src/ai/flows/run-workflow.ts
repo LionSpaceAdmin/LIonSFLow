@@ -9,6 +9,17 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { AllNodeDefinitions } from '@/lib/node-definitions';
+
+// Import executable node functions
+import { getGcpIamPolicy } from './gcp-get-iam-policy';
+
+// Map node types to their executable functions
+const nodeFunctionRegistry: Record<string, (input: any) => Promise<any>> = {
+  'gcp-get-iam-policy': getGcpIamPolicy,
+  // Add other executable node functions here as they are created
+};
+
 
 const NodeSchema = z.object({
   id: z.string(),
@@ -22,6 +33,8 @@ const EdgeSchema = z.object({
   id: z.string(),
   source: z.string(),
   target: z.string(),
+  sourceHandle: z.string().optional().nullable(),
+  targetHandle: z.string().optional().nullable(),
 });
 export type Edge = z.infer<typeof EdgeSchema>;
 
@@ -66,7 +79,7 @@ const runWorkflowFlow = ai.defineFlow(
       }
       adjList.get(edge.source)!.push(edge.target);
     });
-
+    
     // Find trigger nodes (nodes with no incoming edges)
     const incomingEdges = new Set(edges.map(edge => edge.target));
     const triggerNodes = nodes.filter(node => !incomingEdges.has(node.id));
@@ -77,6 +90,7 @@ const runWorkflowFlow = ai.defineFlow(
       logs.push(`Found ${triggerNodes.length} trigger node(s). Starting execution...`);
       
       const executed = new Set<string>();
+      const nodeOutputs = new Map<string, any>();
 
       // Recursive execution function
       const executeNode = async (nodeId: string) => {
@@ -90,12 +104,43 @@ const runWorkflowFlow = ai.defineFlow(
           return;
         }
 
-        logs.push(`Executing node: ${node.data.label || node.id} (Type: ${node.type})`);
-        executed.add(nodeId);
+        const nodeDef = AllNodeDefinitions.find(def => def.type === node.type);
+        const nodeLabel = node.data.label || nodeDef?.name || node.id;
+        
+        logs.push(`Executing node: "${nodeLabel}" (Type: ${node.type})`);
 
-        // Simulate async work
-        await new Promise(resolve => setTimeout(resolve, 150));
-        logs.push(`Node ${node.data.label || node.id} finished.`);
+        // Gather inputs from preceding nodes
+        const inputEdges = edges.filter(edge => edge.target === nodeId);
+        let nodeInputData = { ...node.data }; // Start with parameters from config panel
+
+        for (const edge of inputEdges) {
+          const sourceNodeOutput = nodeOutputs.get(edge.source);
+          if (sourceNodeOutput && edge.sourceHandle && edge.targetHandle) {
+             const outputValue = sourceNodeOutput[edge.sourceHandle];
+             nodeInputData[edge.targetHandle] = outputValue;
+             logs.push(`- Passing output "${edge.sourceHandle}" from source to input "${edge.targetHandle}". Value: ${JSON.stringify(outputValue)}`);
+          }
+        }
+        
+        let output = {};
+        const execute = nodeFunctionRegistry[node.type];
+        if (execute) {
+          try {
+            logs.push(`- Calling associated function with input: ${JSON.stringify(nodeInputData)}`);
+            output = await execute(nodeInputData);
+            logs.push(`- Function returned: ${JSON.stringify(output)}`);
+          } catch (e: any) {
+            logs.push(`- Error executing node function for "${nodeLabel}": ${e.message}`);
+            // Stop execution of this branch on error
+            return; 
+          }
+        } else {
+          logs.push(`- No executable function registered for type "${node.type}". Skipping.`);
+        }
+
+        nodeOutputs.set(nodeId, output);
+        executed.add(nodeId);
+        logs.push(`Node "${nodeLabel}" finished.`);
         
         const nextNodeIds = adjList.get(nodeId) || [];
         for (const nextNodeId of nextNodeIds) {
@@ -119,3 +164,5 @@ const runWorkflowFlow = ai.defineFlow(
     };
   }
 );
+
+    

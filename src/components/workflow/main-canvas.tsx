@@ -16,6 +16,11 @@ import { AllNodeDefinitions } from "@/lib/node-definitions";
 
 const nodeTypes = {
   custom: CustomNode,
+  // We can add other specific types here if needed
+  ...AllNodeDefinitions.reduce((acc, def) => {
+    acc[def.type] = CustomNode;
+    return acc;
+  }, {} as Record<string, typeof CustomNode>)
 };
 
 const MainCanvas = () => {
@@ -42,7 +47,6 @@ const MainCanvas = () => {
       event.preventDefault();
 
       const type = event.dataTransfer.getData("application/reactflow");
-      const name = event.dataTransfer.getData("application/node-name");
 
       if (typeof type === "undefined" || !type) {
         return;
@@ -53,14 +57,15 @@ const MainCanvas = () => {
         y: event.clientY,
       });
 
-      const newNode: Node = {
-        id: `${type}-${Date.now()}`,
-        type: 'custom',
+      // The addNode function in the store will handle creating the full node object
+      const partialNode = {
+        id: '', // The store will generate a unique ID
+        type: type, // This is the functional type
         position,
-        data: { label: `${name}` },
+        data: {},
       };
 
-      addNode(newNode);
+      addNode(partialNode);
     },
     [screenToFlowPosition, addNode]
   );
@@ -73,10 +78,13 @@ const MainCanvas = () => {
     setSelectedNodeId(null);
   }, [setSelectedNodeId]);
 
+  // We need to map our state nodes to what ReactFlow expects, ensuring the 'type' is 'custom'
+  const flowNodes = nodes.map(n => ({...n, type: 'custom'}));
+
   return (
     <div className="h-full w-full" ref={reactFlowWrapper} >
       <ReactFlow
-        nodes={nodes}
+        nodes={flowNodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
@@ -98,3 +106,5 @@ const MainCanvas = () => {
 };
 
 export default MainCanvas;
+
+    

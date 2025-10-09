@@ -5,12 +5,20 @@ import { memo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { AllNodeDefinitions } from "@/lib/node-definitions";
+import { useWorkflowStore } from "@/lib/store/workflow-store";
 
-const CustomNode = ({ id, data, selected, type }: NodeProps) => {
-  const nodeDefinition = AllNodeDefinitions.find((def) => def.type === type);
+const CustomNode = ({ id, data, selected, type: nodeType }: NodeProps) => {
+  // The 'type' from NodeProps is the one registered in ReactFlow, which is 'custom'.
+  // The actual functional type of our node is stored in the node's data.
+  // For backward compatibility or nodes just added, we check node.type as well.
+  const { nodes } = useWorkflowStore();
+  const node = nodes.find(n => n.id === id);
+  const functionalType = node?.type || nodeType;
+
+  const nodeDefinition = AllNodeDefinitions.find((def) => def.type === functionalType);
 
   if (!nodeDefinition) {
-    return <div>שגיאה: הגדרת צומת לא נמצאה עבור סוג '{type}'</div>;
+    return <div>שגיאה: הגדרת צומת לא נמצאה עבור סוג '{functionalType}'</div>;
   }
 
   const { icon: Icon, name, inputs, outputs, category } = nodeDefinition;
@@ -21,6 +29,7 @@ const CustomNode = ({ id, data, selected, type }: NodeProps) => {
     'עיבוד': 'bg-yellow-500',
     'לוגיקה': 'bg-purple-500',
     'בינה מלאכותית וגנרטיבית': 'bg-pink-500',
+    'GCP': 'bg-orange-500',
   };
 
   return (
@@ -39,6 +48,9 @@ const CustomNode = ({ id, data, selected, type }: NodeProps) => {
         </div>
       </CardHeader>
       <CardContent className="p-3 bg-card rounded-b-lg">
+        <div className="text-xs text-muted-foreground mb-2">
+            {nodeDefinition.description}
+        </div>
         <div className="flex justify-between">
           {/* Inputs */}
           <div className="space-y-2">
@@ -48,7 +60,7 @@ const CustomNode = ({ id, data, selected, type }: NodeProps) => {
                   type="target"
                   position={Position.Left}
                   id={input.name}
-                  style={{ top: `${(index + 1) * 20}px` }}
+                  style={{ top: `calc(50% + ${index * 20}px - ${(inputs.length -1) * 10}px)` }}
                   className="!w-3 !h-3"
                 />
                 <span className="text-xs">{input.label}</span>
@@ -64,7 +76,7 @@ const CustomNode = ({ id, data, selected, type }: NodeProps) => {
                   type="source"
                   position={Position.Right}
                   id={output.name}
-                  style={{ top: `${(index + 1) * 20}px` }}
+                   style={{ top: `calc(50% + ${index * 20}px - ${(outputs.length -1) * 10}px)` }}
                   className="!w-3 !h-3"
                 />
               </div>
@@ -77,3 +89,5 @@ const CustomNode = ({ id, data, selected, type }: NodeProps) => {
 };
 
 export default memo(CustomNode);
+
+    

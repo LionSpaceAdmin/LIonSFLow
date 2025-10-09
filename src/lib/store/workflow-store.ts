@@ -63,22 +63,36 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   },
 
   addNode: (node: Node) => {
-    const def = AllNodeDefinitions.find(d => d.name === node.data.label);
+    const def = AllNodeDefinitions.find(d => d.type === node.type);
+    
+    // The node added to react-flow should be of 'custom' type to use our custom component
+    const flowNode: Node = {
+        id: `${node.type}-${Date.now()}`,
+        type: 'custom', 
+        position: node.position,
+        data: { label: def?.name || 'Unknown Node' },
+    };
+
     if (def) {
-        node.type = def.type;
+        // We store the actual functional type in our own state node
+        const stateNode: Node = {
+            ...flowNode,
+            type: def.type, // The functional type
+        };
+        
         const defaultParams = def.parameters.reduce((acc, param) => {
             if (param.defaultValue !== undefined) {
                 acc[param.name] = param.defaultValue;
             }
             return acc;
         }, {} as Record<string, any>);
-        node.data = { ...node.data, ...defaultParams };
+        
+        stateNode.data = { ...stateNode.data, ...defaultParams };
+
+        set({
+          nodes: [...get().nodes, stateNode],
+        });
     }
-    // Set back to custom wrapper
-    node.type = 'custom';
-    set({
-      nodes: [...get().nodes, node],
-    });
   },
 
   setSelectedNodeId: (nodeId: string | null) => {
@@ -116,3 +130,5 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     set({ isLogsPanelOpen: isOpen });
   },
 }));
+
+    

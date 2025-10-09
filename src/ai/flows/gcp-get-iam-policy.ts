@@ -18,7 +18,7 @@ export type GetGcpIamPolicyInput = z.infer<typeof GetGcpIamPolicyInputSchema>;
 const GetGcpIamPolicyOutputSchema = z.object({
   policy: z.string().describe('The IAM policy in JSON format.'),
 });
-export type GetGcpIamPolicyOutput = z-infer<typeof GetGcpIamPolicyOutputSchema>;
+export type GetGcpIamPolicyOutput = z.infer<typeof GetGcpIamPolicyOutputSchema>;
 
 export async function getGcpIamPolicy(
   input: GetGcpIamPolicyInput
