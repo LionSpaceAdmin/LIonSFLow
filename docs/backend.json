@@ -1,45 +1,14 @@
 {
   "entities": {
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
-      "type": "object",
-      "description": "Represents a user of the Auron platform.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "User's email address.",
-          "format": "email"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the user was created.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "email",
-        "createdAt"
-      ]
-    },
     "Workflow": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Workflow",
       "type": "object",
-      "description": "Represents an automation workflow created by a user.",
+      "description": "Represents an automation workflow created in the application.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the workflow."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Workflow)"
         },
         "name": {
           "type": "string",
@@ -74,43 +43,12 @@
       },
       "required": [
         "id",
-        "userId",
         "name",
         "nodes",
         "edges",
         "createdAt",
         "lastModified",
         "version"
-      ]
-    },
-    "NodeParameter": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "NodeParameter",
-      "type": "object",
-      "description": "Represents a configurable parameter for a node in a workflow.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the node parameter."
-        },
-        "nodeId": {
-          "type": "string",
-          "description": "Reference to NodeDefinition. (Relationship: NodeDefinition 1:N NodeParameter)"
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the parameter."
-        },
-        "value": {
-          "type": "string",
-          "description": "Value of the parameter. Stored as a string to accommodate different data types."
-        }
-      },
-      "required": [
-        "id",
-        "nodeId",
-        "name",
-        "value"
       ]
     },
     "NodeDefinition": {
@@ -160,42 +98,19 @@
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": []
   },
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles. Uses path-based ownership for private user data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/workflows/{workflowId}",
+        "path": "/workflows/{workflowId}",
         "definition": {
           "entityName": "Workflow",
           "schema": {
             "$ref": "#/backend/entities/Workflow"
           },
-          "description": "Stores workflows created by users. Includes denormalized 'userId' for authorization independence.",
+          "description": "Stores all workflows for the application in a global collection.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
             {
               "name": "workflowId",
               "description": "The unique identifier for the workflow."
@@ -218,28 +133,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/node_definitions/{nodeDefinitionId}/parameters/{nodeParameterId}",
-        "definition": {
-          "entityName": "NodeParameter",
-          "schema": {
-            "$ref": "#/backend/entities/NodeParameter"
-          },
-          "description": "Stores configurable parameters for each node definition. These are global and not user-specific.",
-          "params": [
-            {
-              "name": "nodeDefinitionId",
-              "description": "The unique identifier for the node definition."
-            },
-            {
-              "name": "nodeParameterId",
-              "description": "The unique identifier for the node parameter."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to ensure authorization independence, scalability, and ease of debugging, adhering to the principles outlined.  User-owned data is stored under the `/users/{userId}` path to ensure clear ownership. Workflows are stored as subcollections under the user to clearly define the 1:N User:Workflow relationship. NodeDefinitions are stored in a top level collection as they are shared across all users and do not require user specific authorization.\n\nAuthorization Independence: The `Workflow` documents include the `userId` field which is denormalized from the parent `User` document. This ensures that security rules for workflows can be enforced without needing to perform `get()` operations to check user ownership, thus ensuring authorization independence.\n\nQAPs Support: The segregation of data based on ownership (/users/{userId}/workflows/{workflowId}) naturally supports secure list operations. Rules can easily filter workflows based on the `userId` without needing to inspect the contents of each document, as the path itself implies ownership. NodeDefinitions are public and require no authorization checks, which simplifies listing operations."
+    "reasoning": "The Firestore structure is simplified to use global collections, as the multi-user authentication requirement has been removed in favor of a single password for the entire app. Workflows are now stored in a top-level `/workflows` collection. NodeDefinitions remain in a top-level collection as they are global to the application."
   }
 }

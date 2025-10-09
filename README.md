@@ -23,8 +23,8 @@ LionsFlow is an internal platform designed to streamline and automate the manage
     - **Text Translation:** Translate text between languages.
     - **Sentiment Analysis:** Determine the sentiment of a piece of text.
     - **Entity Extraction:** Extract structured data from text.
-- **User Authentication:** Secure user management powered by Firebase Authentication.
-- **Data Persistence:** Workflows are saved and loaded from Firestore, with security rules ensuring that users can only access their own data.
+- **Access Control:** The application is protected by a global password for internal use.
+- **Data Persistence:** Workflows are saved and loaded from a central Firestore database.
 
 ### Getting Started
 

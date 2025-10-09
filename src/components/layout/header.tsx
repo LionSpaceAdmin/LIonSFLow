@@ -2,7 +2,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,10 +10,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
@@ -22,7 +17,7 @@ import { runWorkflow } from "@/ai/flows/run-workflow";
 import { Download, Play, Upload, Bot, Database, FilePlus } from "lucide-react";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useFirestore, useMemoFirebase } from "@/firebase/provider";
-import { collection, addDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, doc, serverTimestamp } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 export default function Header() {
@@ -142,13 +137,6 @@ export default function Header() {
     }
   };
 
-  const handlePlaceholderClick = (feature: string) => {
-    toast({
-      title: "תכונה זו אינה מיושמת",
-      description: `הפונקציונליות של ${feature} עדיין אינה זמינה.`,
-    });
-  };
-
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 z-10">
       <div className="flex items-center gap-3">
@@ -197,23 +185,6 @@ export default function Header() {
           <Play className="ml-2 h-4 w-4" />
           הרץ
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Avatar className="h-9 w-9 cursor-pointer">
-              <AvatarImage src="https://picsum.photos/seed/user/40/40" alt="User" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handlePlaceholderClick("פרופיל")}>פרופיל</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePlaceholderClick("חיובים")}>חיובים</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlePlaceholderClick("הגדרות")}>הגדרות</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => handlePlaceholderClick("התנתקות")}>התנתק</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );
