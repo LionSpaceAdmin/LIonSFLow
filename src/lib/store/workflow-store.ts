@@ -18,6 +18,7 @@ type WorkflowState = {
   nodes: Node[];
   edges: Edge[];
   selectedNodeId: string | null;
+  workflowId: string | null; // To track the current workflow in Firestore
   logs: string[];
   isLogsPanelOpen: boolean;
   onNodesChange: OnNodesChange;
@@ -27,58 +28,19 @@ type WorkflowState = {
   setSelectedNodeId: (nodeId: string | null) => void;
   updateNodeConfig: (nodeId: string, data: any) => void;
   setWorkflow: (nodes: Node[], edges: Edge[]) => void;
+  setWorkflowId: (id: string | null) => void;
   setLogs: (logs: string[]) => void;
   setLogsPanelOpen: (isOpen: boolean) => void;
 };
 
-const initialNodes: Node[] = [
-  {
-    id: 'new-telegram-message-1',
-    type: 'new-telegram-message',
-    position: { x: 100, y: 200 },
-    data: { label: 'הודעת טלגרם חדשה' },
-  },
-  {
-    id: 'chat-with-gemini-1',
-    type: 'chat-with-gemini',
-    position: { x: 400, y: 150 },
-    data: { label: "צ'אט עם Gemini" },
-  },
-  {
-    id: 'post-to-discord-1',
-    type: 'post-to-discord',
-    position: { x: 700, y: 200 },
-    data: { label: 'פרסם בדיסקורד' },
-  },
-];
-
-// Set node types based on definitions
-initialNodes.forEach(node => {
-    const def = AllNodeDefinitions.find(d => d.type === node.type);
-    if(def) {
-        // Populate default parameters when initializing
-        const defaultParams = def.parameters.reduce((acc, param) => {
-            if (param.defaultValue !== undefined) {
-              acc[param.name] = param.defaultValue;
-            }
-            return acc;
-        }, {} as Record<string, any>);
-        node.data = { ...node.data, ...defaultParams };
-    }
-});
-// Re-map to custom type wrapper
-initialNodes.forEach(node => node.type = 'custom');
-
-
-const initialEdges: Edge[] = [
-    { id: 'e1-2', source: 'new-telegram-message-1', target: 'chat-with-gemini-1', animated: true },
-    { id: 'e2-3', source: 'chat-with-gemini-1', target: 'post-to-discord-1', animated: true },
-];
+const initialNodes: Node[] = [];
+const initialEdges: Edge[] = [];
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
   selectedNodeId: null,
+  workflowId: null,
   logs: [],
   isLogsPanelOpen: false,
 
@@ -96,7 +58,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   onConnect: (connection: Connection) => {
     set({
-      edges: addEdge(connection, get().edges),
+      edges: addEdge({ ...connection, animated: true }, get().edges),
     });
   },
 
@@ -137,7 +99,13 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   },
   
   setWorkflow: (nodes: Node[], edges: Edge[]) => {
-    set({ nodes, edges, selectedNodeId: null });
+    // When loading a workflow, ensure the nodes are of type 'custom' for ReactFlow
+    const customTypeNodes = nodes.map(n => ({...n, type: 'custom'}));
+    set({ nodes: customTypeNodes, edges, selectedNodeId: null });
+  },
+
+  setWorkflowId: (id: string | null) => {
+    set({ workflowId: id });
   },
 
   setLogs: (logs: string[]) => {

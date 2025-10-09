@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,16 +11,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useWorkflowStore } from "@/lib/store/workflow-store";
 import { runWorkflow } from "@/ai/flows/run-workflow";
-import { Download, Play, Upload, Bot } from "lucide-react";
+import { Download, Play, Upload, Bot, Database, FilePlus } from "lucide-react";
+import { useCollection } from "@/firebase/firestore/use-collection";
+import { useFirestore, useMemoFirebase } from "@/firebase/provider";
+import { collection, addDoc, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 export default function Header() {
   const { toast } = useToast();
-  const { nodes, edges, setWorkflow, setLogs, setLogsPanelOpen } = useWorkflowStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { nodes, edges, setWorkflow, setLogs, setLogsPanelOpen, workflowId, setWorkflowId } = useWorkflowStore();
+  const firestore = useFirestore();
+
+  const workflowsCollection = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'workflows');
+  }, [firestore]);
+
+  const { data: workflows, isLoading } = useCollection(workflowsCollection);
+
 
   const handleRunWorkflow = async () => {
     toast({
@@ -46,7 +63,16 @@ export default function Header() {
     }
   };
 
-  const handleSaveWorkflow = () => {
+  const handleNewWorkflow = () => {
+    setWorkflow([], []);
+    setWorkflowId(null);
+    toast({
+      title: "תהליך עבודה חדש",
+      description: "הקנבס נוקה ומוכן להתחלה חדשה.",
+    });
+  };
+
+  const handleSaveWorkflow = async () => {
     if (nodes.length === 0) {
       toast({
         variant: "destructive",
@@ -56,63 +82,65 @@ export default function Header() {
       return;
     }
 
+    const workflowName = prompt("אנא הכנס שם לתהליך העבודה:", "תהליך עבודה חדש");
+    if (!workflowName) return;
+
     const workflowData = {
+      name: workflowName,
       nodes,
       edges,
+      lastModified: serverTimestamp(),
     };
-    const dataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(workflowData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "workflow.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-    toast({
-      title: "התהליך נשמר",
-      description: "קובץ תהליך העבודה הורד למחשבך.",
-    });
-  };
-
-  const handleLoadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result;
-        if (typeof content === 'string') {
-          const { nodes: loadedNodes, edges: loadedEdges } = JSON.parse(content);
-          if (Array.isArray(loadedNodes) && Array.isArray(loadedEdges)) {
-             setWorkflow(loadedNodes, loadedEdges);
-             toast({
-              title: "התהליך נטען בהצלחה",
-              description: "תהליך העבודה מהקובץ מוצג כעת על הקנבס.",
-            });
-          } else {
-            throw new Error("Invalid file structure");
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load workflow:", error);
+    
+    try {
+      if (workflowId && firestore) {
+        // Update existing workflow
+        const docRef = doc(firestore, "workflows", workflowId);
+        setDocumentNonBlocking(docRef, workflowData, { merge: true });
         toast({
-          variant: "destructive",
-          title: "שגיאה בטעינת הקובץ",
-          description: "הקובץ אינו קובץ תהליך עבודה תקין.",
+          title: "התהליך עודכן!",
+          description: `תהליך העבודה "${workflowName}" עודכן בהצלחה.`,
+        });
+      } else if (firestore) {
+        // Create new workflow
+        const docRef = await addDoc(collection(firestore, "workflows"), {
+          ...workflowData,
+          createdAt: serverTimestamp(),
+          version: 1,
+        });
+        setWorkflowId(docRef.id);
+        toast({
+          title: "התהליך נשמר!",
+          description: `תהליך העבודה "${workflowName}" נשמר בהצלחה.`,
         });
       }
-    };
-    reader.readAsText(file);
-    // Reset file input to allow loading the same file again
-    event.target.value = '';
+    } catch (error) {
+        console.error("Error saving workflow: ", error);
+        const errorMessage = error instanceof Error ? error.message : "אירעה שגיאה בלתי צפויה.";
+        toast({
+            variant: "destructive",
+            title: "שגיאה בשמירת התהליך",
+            description: errorMessage,
+        });
+    }
   };
 
+  const handleLoadWorkflow = (workflow: any) => {
+    if (workflow.nodes && workflow.edges) {
+      setWorkflow(workflow.nodes, workflow.edges);
+      setWorkflowId(workflow.id);
+      toast({
+        title: "התהליך נטען בהצלחה",
+        description: `תהליך העבודה "${workflow.name}" מוצג כעת על הקנבס.`,
+      });
+    } else {
+       toast({
+        variant: "destructive",
+        title: "שגיאה בטעינת התהליך",
+        description: "מבנה הנתונים של תהליך העבודה אינו תקין.",
+      });
+    }
+  };
 
   const handlePlaceholderClick = (feature: string) => {
     toast({
@@ -130,21 +158,33 @@ export default function Header() {
         </h1>
       </div>
       <div className="flex items-center gap-2">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="application/json"
-        />
         <Button
           variant="outline"
           size="sm"
-          onClick={handleLoadClick}
+          onClick={handleNewWorkflow}
         >
-          <Upload className="ml-2 h-4 w-4" />
-          טען
+          <FilePlus className="ml-2 h-4 w-4" />
+          חדש
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Database className="ml-2 h-4 w-4" />
+              טען
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>טען תהליך עבודה מ-Firestore</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {isLoading && <DropdownMenuItem disabled>טוען רשימה...</DropdownMenuItem>}
+            {!isLoading && workflows?.length === 0 && <DropdownMenuItem disabled>לא נמצאו תהליכי עבודה.</DropdownMenuItem>}
+            {workflows?.map((wf) => (
+              <DropdownMenuItem key={wf.id} onClick={() => handleLoadWorkflow(wf)}>
+                {wf.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="outline"
           size="sm"
