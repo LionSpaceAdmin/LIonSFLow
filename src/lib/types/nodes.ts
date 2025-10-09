@@ -21,5 +21,3 @@ export interface NodeDefinition {
   outputs: { name: string; label: string, type: string }[];
   parameters: NodeParameter[];
 }
-
-    

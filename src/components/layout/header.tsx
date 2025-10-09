@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -17,7 +16,7 @@ import { useWorkflowStore } from "@/lib/store/workflow-store";
 import { runWorkflow } from "@/ai/flows/run-workflow";
 import { Download, Play, Upload, Bot, Database, FilePlus, LogOut, Loader2 } from "lucide-react";
 import { useFirestore } from "@/firebase/provider";
-import { collection, addDoc, doc, serverTimestamp, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, addDoc, doc, serverTimestamp, getDocs } from "firebase/firestore";
 import { setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 type WorkflowDoc = {
@@ -168,7 +167,7 @@ export default function Header() {
       setIsFetchingWorkflows(false);
     }
   };
-
+  
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await fetch('/api/auth/logout', { method: 'POST' });

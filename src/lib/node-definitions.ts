@@ -269,6 +269,7 @@ export const AllNodeDefinitions: NodeDefinition[] = [
         { name: 'projectId', label: 'מזהה פרויקט', type: 'string' },
         { name: 'zone', label: 'אזור (Zone)', type: 'string' },
         { name: 'instanceName', label: 'שם מכונה', type: 'string' },
+        { name: 'action', label: 'פעולה', type: 'string' },
     ],
     outputs: [{ name: 'status', label: 'סטטוס', type: 'string' }],
     parameters: [
