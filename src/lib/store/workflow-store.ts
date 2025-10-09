@@ -11,7 +11,6 @@ import {
   OnConnect,
   applyNodeChanges,
   applyEdgeChanges,
-  useReactFlow,
 } from 'reactflow';
 import { AllNodeDefinitions } from '@/lib/node-definitions';
 
@@ -34,20 +33,20 @@ type WorkflowState = {
 
 const initialNodes: Node[] = [
   {
-    id: 'trigger-1',
-    type: 'custom',
+    id: 'new-telegram-message-1',
+    type: 'new-telegram-message',
     position: { x: 100, y: 200 },
     data: { label: 'הודעת טלגרם חדשה' },
   },
   {
-    id: 'ai-1',
-    type: 'custom',
+    id: 'chat-with-gemini-1',
+    type: 'chat-with-gemini',
     position: { x: 400, y: 150 },
     data: { label: "צ'אט עם Gemini" },
   },
   {
-    id: 'action-1',
-    type: 'custom',
+    id: 'post-to-discord-1',
+    type: 'post-to-discord',
     position: { x: 700, y: 200 },
     data: { label: 'פרסם בדיסקורד' },
   },
@@ -55,9 +54,8 @@ const initialNodes: Node[] = [
 
 // Set node types based on definitions
 initialNodes.forEach(node => {
-    const def = AllNodeDefinitions.find(d => d.name === node.data.label);
+    const def = AllNodeDefinitions.find(d => d.type === node.type);
     if(def) {
-        node.type = def.type;
         // Populate default parameters when initializing
         const defaultParams = def.parameters.reduce((acc, param) => {
             if (param.defaultValue !== undefined) {
@@ -73,8 +71,8 @@ initialNodes.forEach(node => node.type = 'custom');
 
 
 const initialEdges: Edge[] = [
-    { id: 'e1-2', source: 'trigger-1', target: 'ai-1', animated: true },
-    { id: 'e2-3', source: 'ai-1', target: 'action-1', animated: true },
+    { id: 'e1-2', source: 'new-telegram-message-1', target: 'chat-with-gemini-1', animated: true },
+    { id: 'e2-3', source: 'chat-with-gemini-1', target: 'post-to-discord-1', animated: true },
 ];
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({

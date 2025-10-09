@@ -1,5 +1,6 @@
 {
-  "name": "nextn",
+  "name": "lionsflow",
+  "description": "The official Control Plane for the lionsofzion-official.org organization, built with Next.js, Firebase, and Genkit.",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -55,6 +56,7 @@
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2",
+
     "zustand": "^4.5.2"
   },
   "devDependencies": {

@@ -16,12 +16,14 @@ const NodeSchema = z.object({
   position: z.object({ x: z.number(), y: z.number() }),
   data: z.record(z.any()),
 });
+export type Node = z.infer<typeof NodeSchema>;
 
 const EdgeSchema = z.object({
   id: z.string(),
   source: z.string(),
   target: z.string(),
 });
+export type Edge = z.infer<typeof EdgeSchema>;
 
 const RunWorkflowInputSchema = z.object({
   nodes: z.array(NodeSchema),
@@ -56,13 +58,54 @@ const runWorkflowFlow = ai.defineFlow(
     logs.push('Workflow execution started.');
     logs.push(`Processing ${nodes.length} nodes and ${edges.length} edges.`);
 
-    // This is a placeholder for the actual workflow execution logic.
-    // In the future, this will interpret the graph and run the nodes in order.
-    for (const node of nodes) {
-      logs.push(`Executing node ${node.id} of type ${node.type}.`);
-      // Simulate some work
-      await new Promise(resolve => setTimeout(resolve, 100));
-      logs.push(`Node ${node.id} executed successfully.`);
+    const nodeMap = new Map<string, Node>(nodes.map(node => [node.id, node]));
+    const adjList = new Map<string, string[]>();
+    edges.forEach(edge => {
+      if (!adjList.has(edge.source)) {
+        adjList.set(edge.source, []);
+      }
+      adjList.get(edge.source)!.push(edge.target);
+    });
+
+    // Find trigger nodes (nodes with no incoming edges)
+    const incomingEdges = new Set(edges.map(edge => edge.target));
+    const triggerNodes = nodes.filter(node => !incomingEdges.has(node.id));
+
+    if (triggerNodes.length === 0) {
+      logs.push('Error: No trigger node found. A workflow must have at least one node with no incoming connections.');
+    } else {
+      logs.push(`Found ${triggerNodes.length} trigger node(s). Starting execution...`);
+      
+      const executed = new Set<string>();
+
+      // Recursive execution function
+      const executeNode = async (nodeId: string) => {
+        if (executed.has(nodeId)) {
+          return;
+        }
+        
+        const node = nodeMap.get(nodeId);
+        if (!node) {
+          logs.push(`Error: Node with ID ${nodeId} not found.`);
+          return;
+        }
+
+        logs.push(`Executing node: ${node.data.label || node.id} (Type: ${node.type})`);
+        executed.add(nodeId);
+
+        // Simulate async work
+        await new Promise(resolve => setTimeout(resolve, 150));
+        logs.push(`Node ${node.data.label || node.id} finished.`);
+        
+        const nextNodeIds = adjList.get(nodeId) || [];
+        for (const nextNodeId of nextNodeIds) {
+          await executeNode(nextNodeId);
+        }
+      };
+
+      for (const triggerNode of triggerNodes) {
+        await executeNode(triggerNode.id);
+      }
     }
 
     const result = `התהליך הורץ בהצלחה עם ${nodes.length} צמתים ו-${edges.length} חיבורים.`;

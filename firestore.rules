@@ -1,5 +1,5 @@
 /**
- * @file Firebase Security Rules for Auron Platform
+ * @file Firebase Security Rules for LionsFlow Platform
  *
  * @core_philosophy This ruleset enforces a strict user-ownership model for user profiles and their associated workflows.
  *   Node definitions and their parameters are globally accessible.

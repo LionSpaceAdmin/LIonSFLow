@@ -7,10 +7,12 @@ import ReactFlow, {
   MiniMap,
   useReactFlow,
   ReactFlowInstance,
+  Node,
 } from "reactflow";
 
 import { useWorkflowStore } from "@/lib/store/workflow-store";
 import CustomNode from "./custom-node";
+import { AllNodeDefinitions } from "@/lib/node-definitions";
 
 const nodeTypes = {
   custom: CustomNode,
@@ -51,7 +53,7 @@ const MainCanvas = () => {
         y: event.clientY,
       });
 
-      const newNode = {
+      const newNode: Node = {
         id: `${type}-${Date.now()}`,
         type: 'custom',
         position,
@@ -63,7 +65,7 @@ const MainCanvas = () => {
     [screenToFlowPosition, addNode]
   );
   
-  const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNodeId(node.id);
   }, [setSelectedNodeId]);
 
