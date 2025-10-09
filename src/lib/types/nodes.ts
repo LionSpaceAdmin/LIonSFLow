@@ -7,11 +7,14 @@ export interface NodeParameter {
   description?: string;
 }
 
+export type NodeCategory = 'טריגרים' | 'פעולות' | 'עיבוד' | 'לוגיקה' | 'בינה מלאכותית וגנרטיבית';
+
+
 export interface NodeDefinition {
   id: string;
   type: string;
   name: string;
-  category: 'Triggers' | 'Actions' | 'Processing' | 'Logic' | 'AI & Generative';
+  category: NodeCategory;
   icon: React.ComponentType<{ className?: string }>;
   description: string;
   inputs: { name: string; label: string }[];

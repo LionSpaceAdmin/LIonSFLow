@@ -14,11 +14,11 @@ export default function AuronHomePage() {
       <ReactFlowProvider>
         <Header />
         <div className="flex flex-1 overflow-hidden">
-          <NodePalette />
+          <ConfigPanel />
           <main className="flex-1 h-full relative">
             <MainCanvas />
           </main>
-          <ConfigPanel />
+          <NodePalette />
         </div>
       </ReactFlowProvider>
     </div>

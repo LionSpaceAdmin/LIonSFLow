@@ -14,11 +14,11 @@ import SidebarNode from "./sidebar-node";
 import { Search } from "lucide-react";
 
 const categories = [
-  "Triggers",
-  "Actions",
-  "Processing",
-  "Logic",
-  "AI & Generative",
+  "טריגרים",
+  "פעולות",
+  "עיבוד",
+  "לוגיקה",
+  "בינה מלאכותית וגנרטיבית",
 ];
 
 export default function NodePalette() {
@@ -35,14 +35,14 @@ export default function NodePalette() {
   };
 
   return (
-    <aside className="w-72 border-r bg-card flex flex-col">
+    <aside className="w-72 border-l bg-card flex flex-col">
       <div className="p-4 border-b">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search nodes..."
-            className="pl-9"
+            placeholder="חיפוש צמתים..."
+            className="pr-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />

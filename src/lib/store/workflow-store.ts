@@ -31,19 +31,19 @@ const initialNodes: Node[] = [
     id: 'trigger-1',
     type: 'custom',
     position: { x: 100, y: 200 },
-    data: { label: 'New Telegram Message' },
+    data: { label: 'הודעת טלגרם חדשה' },
   },
   {
     id: 'ai-1',
     type: 'custom',
     position: { x: 400, y: 150 },
-    data: { label: 'Chat with Gemini' },
+    data: { label: "צ'אט עם Gemini" },
   },
   {
     id: 'action-1',
     type: 'custom',
     position: { x: 700, y: 200 },
-    data: { label: 'Post to Discord' },
+    data: { label: 'פרסם בדיסקורד' },
   },
 ];
 

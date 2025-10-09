@@ -18,8 +18,8 @@ export default function Header() {
 
   const handlePlaceholderClick = (feature: string) => {
     toast({
-      title: "Feature not implemented",
-      description: `${feature} functionality is not yet available.`,
+      title: "תכונה זו אינה מיושמת",
+      description: `הפונקציונליות של ${feature} עדיין אינה זמינה.`,
     });
   };
 
@@ -28,29 +28,29 @@ export default function Header() {
       <div className="flex items-center gap-3">
         <Bot className="h-7 w-7 text-primary" />
         <h1 className="text-xl font-bold font-headline tracking-tighter">
-          Auron
+          אורון
         </h1>
       </div>
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handlePlaceholderClick("Load workflow")}
+          onClick={() => handlePlaceholderClick("טעינת תהליך עבודה")}
         >
-          <Upload className="mr-2 h-4 w-4" />
-          Load
+          <Upload className="ml-2 h-4 w-4" />
+          טען
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handlePlaceholderClick("Save workflow")}
+          onClick={() => handlePlaceholderClick("שמירת תהליך עבודה")}
         >
-          <Download className="mr-2 h-4 w-4" />
-          Save
+          <Download className="ml-2 h-4 w-4" />
+          שמור
         </Button>
-        <Button size="sm" onClick={() => handlePlaceholderClick("Run workflow")}>
-          <Play className="mr-2 h-4 w-4" />
-          Run
+        <Button size="sm" onClick={() => handlePlaceholderClick("הרצת תהליך עבודה")}>
+          <Play className="ml-2 h-4 w-4" />
+          הרץ
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -60,13 +60,13 @@ export default function Header() {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>פרופיל</DropdownMenuItem>
+            <DropdownMenuItem>חיובים</DropdownMenuItem>
+            <DropdownMenuItem>הגדרות</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Log out</DropdownMenuItem>
+            <DropdownMenuItem>התנתק</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -10,17 +10,17 @@ const CustomNode = ({ id, data, selected, type }: NodeProps) => {
   const nodeDefinition = AllNodeDefinitions.find((def) => def.type === type);
 
   if (!nodeDefinition) {
-    return <div>Error: Node definition not found for type '{type}'</div>;
+    return <div>שגיאה: הגדרת צומת לא נמצאה עבור סוג '{type}'</div>;
   }
 
   const { icon: Icon, name, inputs, outputs, category } = nodeDefinition;
 
   const categoryColors: { [key: string]: string } = {
-    'Triggers': 'bg-green-500',
-    'Actions': 'bg-blue-500',
-    'Processing': 'bg-yellow-500',
-    'Logic': 'bg-purple-500',
-    'AI & Generative': 'bg-pink-500',
+    'טריגרים': 'bg-green-500',
+    'פעולות': 'bg-blue-500',
+    'עיבוד': 'bg-yellow-500',
+    'לוגיקה': 'bg-purple-500',
+    'בינה מלאכותית וגנרטיבית': 'bg-pink-500',
   };
 
   return (

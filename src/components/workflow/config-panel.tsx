@@ -97,7 +97,7 @@ export default function ConfigPanel() {
 
   return (
     <Sheet open={!!selectedNodeId} onOpenChange={handleOpenChange}>
-      <SheetContent className="w-[400px] sm:w-[540px] flex flex-col">
+      <SheetContent className="w-[400px] sm:w-[540px] flex flex-col" side="left">
         <SheetHeader>
           <SheetTitle className="font-headline">{nodeDefinition.name}</SheetTitle>
           <SheetDescription>{nodeDefinition.description}</SheetDescription>
@@ -105,7 +105,7 @@ export default function ConfigPanel() {
         <Separator />
         <div className="flex-1 overflow-y-auto pr-4 space-y-6 py-4">
           <div className="space-y-4">
-            <h3 className="text-lg font-medium font-headline">Parameters</h3>
+            <h3 className="text-lg font-medium font-headline">פרמטרים</h3>
             {nodeDefinition.parameters.length > 0 ? (
               nodeDefinition.parameters.map((param) => (
                 <div key={param.name} className="grid grid-cols-1 items-center gap-2">
@@ -124,7 +124,7 @@ export default function ConfigPanel() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No parameters to configure.</p>
+              <p className="text-sm text-muted-foreground">אין פרמטרים להגדרה.</p>
             )}
           </div>
         </div>
